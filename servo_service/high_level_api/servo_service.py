@@ -216,9 +216,11 @@ class ServoService:
         初始化电机参数
 
         根据 AxisConfig 中的配置，将以下参数写入驱动器:
+        - 编码器分辨率 (608Fh) - 分子/分母
+        - 减速比 (6091h) - 分子/分母
         - 回零超时时间
-        - DI (数字输入) 功能配置
         - 堵转回零参数
+        - DI (数字输入) 功能配置
 
         Args:
             axis: 轴名称 (None 则使用当前轴)
@@ -240,12 +242,34 @@ class ServoService:
         if verbose:
             logger.info(f"初始化 {axis.value} 轴电机参数...")
 
-        # 1. 设置回零超时
+        # 1. 设置编码器分辨率 (608Fh)
+        motor.set_encoder_resolution(
+            config.encoder_resolution,
+            config.encoder_resolution_denominator
+        )
+        if verbose:
+            logger.info(
+                f"  编码器分辨率: {config.encoder_resolution}/"
+                f"{config.encoder_resolution_denominator}"
+            )
+
+        # 2. 设置减速比 (6091h)
+        motor.set_gear_ratio(
+            config.gear_ratio_numerator,
+            config.gear_ratio_denominator
+        )
+        if verbose:
+            logger.info(
+                f"  减速比: {config.gear_ratio_numerator}/"
+                f"{config.gear_ratio_denominator}"
+            )
+
+        # 3. 设置回零超时
         motor.set_homing_timeout(config.homing_timeout)
         if verbose:
             logger.info(f"  回零超时: {config.homing_timeout}ms")
 
-        # 2. 设置堵转回零参数
+        # 4. 设置堵转回零参数
         motor.set_blocking_parameters(config.blocking_torque, config.blocking_time)
         if verbose:
             logger.info(
@@ -253,7 +277,7 @@ class ServoService:
                 f"检测时间={config.blocking_time}ms"
             )
 
-        # 3. 配置 DI 功能
+        # 5. 配置 DI 功能
         di_configs = [
             (1, config.di1_function, config.di1_logic),
             (2, config.di2_function, config.di2_logic),

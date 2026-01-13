@@ -879,6 +879,49 @@ class Motor:
         self._client.write_register(self._slave_id, logic_reg, logic)
         logger.debug(f"配置 DI{di_number}: 功能={function}, 逻辑={logic}")
 
+    def set_encoder_resolution(self, numerator: int, denominator: int = 1) -> None:
+        """
+        设置编码器分辨率 (608Fh)
+
+        编码器分辨率 = numerator / denominator (脉冲/电机转)
+
+        Args:
+            numerator: 分子 - 编码器脉冲数 (608Fh:01)
+            denominator: 分母 - 电机圈数 (608Fh:02)，默认为 1
+
+        Example:
+            设置 10000 脉冲/转: set_encoder_resolution(10000, 1)
+        """
+        self._client.write_register_32bit(
+            self._slave_id, Registers.ENCODER_RESOLUTION_NUM.address, numerator
+        )
+        self._client.write_register_32bit(
+            self._slave_id, Registers.ENCODER_RESOLUTION_DEN.address, denominator
+        )
+        logger.debug(f"设置编码器分辨率: {numerator}/{denominator}")
+
+    def set_gear_ratio(self, numerator: int = 1, denominator: int = 1) -> None:
+        """
+        设置电子齿轮比/减速比 (6091h)
+
+        减速比 = numerator / denominator (电机转/轴转)
+
+        Args:
+            numerator: 分子 - 电机轴圈数 (6091h:01)
+            denominator: 分母 - 驱动轴圈数 (6091h:02)
+
+        Example:
+            无减速 (1:1): set_gear_ratio(1, 1)
+            减速比 10:1: set_gear_ratio(10, 1)
+        """
+        self._client.write_register_32bit(
+            self._slave_id, Registers.GEAR_RATIO_NUM.address, numerator
+        )
+        self._client.write_register_32bit(
+            self._slave_id, Registers.GEAR_RATIO_DEN.address, denominator
+        )
+        logger.debug(f"设置减速比: {numerator}/{denominator}")
+
     def read_di_physical_state(self) -> int:
         """
         读取 DI 物理状态

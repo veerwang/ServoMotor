@@ -63,9 +63,19 @@ class AxisConfig:
     max_payload_vertical: float
     """最大垂直负载 (kg)"""
 
-    # 编码器参数
+    # 编码器参数 (608Fh)
     encoder_resolution: int = 10000
-    """编码器分辨率 (脉冲/转)"""
+    """编码器分辨率分子 - 每圈脉冲数 (608Fh:01)"""
+
+    encoder_resolution_denominator: int = 1
+    """编码器分辨率分母 - 电机圈数 (608Fh:02)"""
+
+    # 减速比参数 (6091h)
+    gear_ratio_numerator: int = 1
+    """减速比分子 - 电机轴圈数 (6091h:01)"""
+
+    gear_ratio_denominator: int = 1
+    """减速比分母 - 驱动轴圈数 (6091h:02)"""
 
     # 默认运动参数
     default_velocity: float = 100.0
