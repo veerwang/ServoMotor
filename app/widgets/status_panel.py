@@ -243,19 +243,22 @@ class StatusIndicator(QWidget):
         self._update_light_style()
 
     def _update_light_style(self) -> None:
-        """更新指示灯样式"""
+        """更新指示灯样式 - 工业风格"""
         if self._is_active:
             if self._is_error:
-                color = "#d9534f"  # 红色
+                color = "#dc3545"  # 红色 (危险)
+                glow = "0 0 8px #dc3545"
             else:
-                color = "#5cb85c"  # 绿色
+                color = "#28a745"  # 绿色 (正常)
+                glow = "0 0 8px #28a745"
         else:
-            color = "#cccccc"  # 灰色
+            color = "#4a4a4a"  # 深灰色 (未激活)
+            glow = "none"
 
         self._light.setStyleSheet(
             f"""
             background-color: {color};
             border-radius: 10px;
-            border: 1px solid #999999;
+            border: 2px solid #ffc107;
             """
         )
