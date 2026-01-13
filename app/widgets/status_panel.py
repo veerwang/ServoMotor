@@ -21,9 +21,66 @@ from PyQt5.QtWidgets import (
 )
 
 from servo_service import DriveState, ServoService
-from ..i18n import tr
+from ..i18n import tr, get_language, Language
 
 logger = logging.getLogger(__name__)
+
+# 故障码定义 (中文, 英文)
+ERROR_CODES = {
+    # 电流/过载
+    0x2300: ("电机过流", "Motor overcurrent"),
+    0x2311: ("电机过载", "Motor overload"),
+    0x2312: ("电机堵转", "Motor stalling"),
+    # 电压
+    0x3210: ("电源过压", "Power overvoltage"),
+    0x3220: ("电源欠压", "Power undervoltage"),
+    # 温度
+    0x4210: ("过温保护", "Over temperature"),
+    0x4220: ("低温保护", "Low temperature"),
+    # 参数
+    0x6320: ("参数设置错误", "Parameter setting error"),
+    # 编码器
+    0x7301: ("编码器电池电压过低", "Encoder battery low voltage"),
+    0x7302: ("编码器电池警告", "Encoder battery warning"),
+    0x7303: ("编码器通信失败", "Encoder communication failure"),
+    0x7304: ("编码器多圈未校准", "Encoder multi-turn not calibrated"),
+    0x7309: ("编码器内部故障", "Encoder internal fault"),
+    0x7310: ("超速", "Overspeed"),
+    # 通信
+    0x7501: ("通信看门狗超时", "Communication watchdog timeout"),
+    # 运动
+    0x8610: ("回零超时", "Homing timeout"),
+    0x8611: ("跟随误差", "Following error"),
+    0x8613: ("软件限位", "Software position limit"),
+    0x8614: ("限位开关触发", "Limit switch triggered"),
+    # STO
+    0xFF05: ("STO_1 关断失败", "STO_1 failed to close"),
+    0xFF06: ("STO_1 使能失败", "STO_1 failed to enable"),
+    0xFF07: ("STO_2 关断失败", "STO_2 failed to close"),
+    0xFF08: ("STO_2 使能失败", "STO_2 failed to enable"),
+    0xFF09: ("STO 输入异常", "STO input abnormal"),
+    0xFF0A: ("STO 使能状态", "STO enabled state"),
+}
+
+
+def get_error_description(error_code: int) -> str:
+    """获取故障码描述"""
+    if error_code == 0:
+        return ""
+
+    # 尝试精确匹配
+    if error_code in ERROR_CODES:
+        zh, en = ERROR_CODES[error_code]
+        return zh if get_language() == Language.CHINESE else en
+
+    # 尝试匹配低16位 (有些错误码高位有额外信息)
+    low_code = error_code & 0xFFFF
+    if low_code in ERROR_CODES:
+        zh, en = ERROR_CODES[low_code]
+        return zh if get_language() == Language.CHINESE else en
+
+    # 未知故障码
+    return "未知故障" if get_language() == Language.CHINESE else "Unknown fault"
 
 
 class StatusPanel(QGroupBox):
@@ -178,11 +235,14 @@ class StatusPanel(QGroupBox):
 
             # 更新错误码
             if status.error_code:
-                self._error_label.setText(f"0x{status.error_code:04X}")
+                desc = get_error_description(status.error_code)
+                self._error_label.setText(f"0x{status.error_code:04X} - {desc}")
                 self._error_label.setProperty("class", "status-error")
+                self._error_label.setToolTip(f"故障码: 0x{status.error_code:04X}\n{desc}")
             else:
                 self._error_label.setText(tr("status_panel.none"))
                 self._error_label.setProperty("class", "")
+                self._error_label.setToolTip("")
 
             # 更新指示灯
             self._enabled_indicator.set_active(status.is_enabled)
