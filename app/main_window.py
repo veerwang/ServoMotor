@@ -33,6 +33,7 @@ from .widgets.status_panel import StatusPanel
 from .widgets.motion_panel import MotionPanel
 from .widgets.parameter_panel import ParameterPanel
 from .widgets.modbus_debug_panel import ModbusDebugPanel
+from .widgets.register_config_panel import RegisterConfigPanel
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ logger = logging.getLogger(__name__)
 # 视图索引常量
 VIEW_MOTOR_CONTROL = 0
 VIEW_MODBUS_DEBUG = 1
+VIEW_REGISTER_CONFIG = 2
 
 
 class MainWindow(QMainWindow):
@@ -126,6 +128,10 @@ class MainWindow(QMainWindow):
         self._modbus_debug_view = self._create_modbus_debug_view()
         self._view_stack.addWidget(self._modbus_debug_view)
 
+        # 视图 3: 寄存器配置视图
+        self._register_config_view = self._create_register_config_view()
+        self._view_stack.addWidget(self._register_config_view)
+
         # 使用 Splitter 分隔左右面板
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(left_panel)
@@ -168,6 +174,19 @@ class MainWindow(QMainWindow):
 
         return view
 
+    def _create_register_config_view(self) -> QWidget:
+        """创建寄存器配置视图"""
+        view = QWidget()
+        layout = QVBoxLayout(view)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(10)
+
+        # 寄存器配置面板
+        self._register_config_panel = RegisterConfigPanel(self._service)
+        layout.addWidget(self._register_config_panel)
+
+        return view
+
     def _init_menu(self) -> None:
         """初始化菜单栏"""
         menubar = self.menuBar()
@@ -205,6 +224,15 @@ class MainWindow(QMainWindow):
         )
         view_group.addAction(self._modbus_debug_action)
         self._view_menu.addAction(self._modbus_debug_action)
+
+        self._register_config_action = QAction(tr("menu.register_config"), self)
+        self._register_config_action.setCheckable(True)
+        self._register_config_action.setShortcut("Ctrl+3")
+        self._register_config_action.triggered.connect(
+            lambda: self._switch_view(VIEW_REGISTER_CONFIG)
+        )
+        view_group.addAction(self._register_config_action)
+        self._view_menu.addAction(self._register_config_action)
 
         # 连接菜单
         self._connect_menu = menubar.addMenu(tr("menu.connect"))
@@ -303,6 +331,10 @@ class MainWindow(QMainWindow):
         # Modbus 调试面板信号
         self._modbus_debug_panel.request_pause_timer.connect(self.pause_status_timer)
         self._modbus_debug_panel.request_resume_timer.connect(self.resume_status_timer)
+
+        # 寄存器配置面板信号
+        self._register_config_panel.request_pause_timer.connect(self.pause_status_timer)
+        self._register_config_panel.request_resume_timer.connect(self.resume_status_timer)
 
         # 注册语言变更回调
         register_language_callback(self._on_language_changed)
@@ -683,7 +715,12 @@ class MainWindow(QMainWindow):
         self._view_stack.setCurrentIndex(view_index)
         self._update_statusbar_message()
 
-        view_name = tr("status.view_motor") if view_index == VIEW_MOTOR_CONTROL else tr("status.view_modbus")
+        view_names = {
+            VIEW_MOTOR_CONTROL: tr("status.view_motor"),
+            VIEW_MODBUS_DEBUG: tr("status.view_modbus"),
+            VIEW_REGISTER_CONFIG: tr("status.view_register"),
+        }
+        view_name = view_names.get(view_index, "")
         logger.info(f"{tr('common.switch_to')} {view_name}")
 
     # ==================== 事件处理 ====================
@@ -785,6 +822,7 @@ class MainWindow(QMainWindow):
         self._view_menu.setTitle(tr("menu.view"))
         self._motor_control_action.setText(tr("menu.motor_control"))
         self._modbus_debug_action.setText(tr("menu.modbus_debug"))
+        self._register_config_action.setText(tr("menu.register_config"))
 
         self._connect_menu.setTitle(tr("menu.connect"))
         self._connect_action.setText(tr("menu.connect_action"))
@@ -814,10 +852,16 @@ class MainWindow(QMainWindow):
         self._motion_panel.refresh_texts()
         self._parameter_panel.refresh_texts()
         self._modbus_debug_panel.refresh_texts()
+        self._register_config_panel.refresh_texts()
 
     def _update_statusbar_message(self) -> None:
         """更新状态栏消息"""
-        view_name = tr("status.view_motor") if self._current_view == VIEW_MOTOR_CONTROL else tr("status.view_modbus")
+        view_names = {
+            VIEW_MOTOR_CONTROL: tr("status.view_motor"),
+            VIEW_MODBUS_DEBUG: tr("status.view_modbus"),
+            VIEW_REGISTER_CONFIG: tr("status.view_register"),
+        }
+        view_name = view_names.get(self._current_view, "")
         if self._service.is_connected:
             self._statusbar.showMessage(f"{tr('status.connected')} - {view_name}")
         else:
@@ -847,6 +891,7 @@ class MainWindow(QMainWindow):
         self._motion_panel.setEnabled(enabled)
         self._parameter_panel.setEnabled(enabled)
         self._modbus_debug_panel.setEnabled(enabled)
+        self._register_config_panel.setEnabled(enabled)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """窗口关闭事件"""

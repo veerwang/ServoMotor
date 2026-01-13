@@ -9,6 +9,7 @@ from .connection_panel import ConnectionPanel
 from .modbus_debug_panel import ModbusDebugPanel
 from .motion_panel import MotionPanel
 from .parameter_panel import ParameterPanel
+from .register_config_panel import RegisterConfigPanel
 from .status_panel import StatusIndicator, StatusPanel
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "MotionPanel",
     "ParameterPanel",
     "ModbusDebugPanel",
+    "RegisterConfigPanel",
 ]

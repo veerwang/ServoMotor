@@ -111,6 +111,10 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "Modbus 调试(&D)",
         Language.ENGLISH: "Modbus &Debug",
     },
+    "menu.register_config": {
+        Language.CHINESE: "寄存器配置(&R)",
+        Language.ENGLISH: "&Register Config",
+    },
     "menu.connect": {
         Language.CHINESE: "连接(&C)",
         Language.ENGLISH: "&Connect",
@@ -188,6 +192,10 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
     "status.view_modbus": {
         Language.CHINESE: "Modbus 调试视图",
         Language.ENGLISH: "Modbus Debug View",
+    },
+    "status.view_register": {
+        Language.CHINESE: "寄存器配置视图",
+        Language.ENGLISH: "Register Config View",
     },
 
     # 关于对话框
@@ -794,6 +802,230 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
     "common.switch_to": {
         Language.CHINESE: "切换到",
         Language.ENGLISH: "Switch to",
+    },
+
+    # ==================== 寄存器配置面板 ====================
+    "regconfig.title": {
+        Language.CHINESE: "寄存器配置",
+        Language.ENGLISH: "Register Configuration",
+    },
+    "regconfig.read_all": {
+        Language.CHINESE: "读取全部",
+        Language.ENGLISH: "Read All",
+    },
+    "regconfig.read_category": {
+        Language.CHINESE: "读取当前分类",
+        Language.ENGLISH: "Read Category",
+    },
+    "regconfig.verify": {
+        Language.CHINESE: "验证配置",
+        Language.ENGLISH: "Verify Config",
+    },
+    "regconfig.save_eeprom": {
+        Language.CHINESE: "保存到 EEPROM",
+        Language.ENGLISH: "Save to EEPROM",
+    },
+
+    # 分类标签
+    "regconfig.cat.control": {
+        Language.CHINESE: "核心控制",
+        Language.ENGLISH: "Core Control",
+    },
+    "regconfig.cat.position": {
+        Language.CHINESE: "位置控制",
+        Language.ENGLISH: "Position Control",
+    },
+    "regconfig.cat.velocity": {
+        Language.CHINESE: "速度控制",
+        Language.ENGLISH: "Velocity Control",
+    },
+    "regconfig.cat.homing": {
+        Language.CHINESE: "回零控制",
+        Language.ENGLISH: "Homing Control",
+    },
+    "regconfig.cat.di_config": {
+        Language.CHINESE: "DI 配置",
+        Language.ENGLISH: "DI Config",
+    },
+    "regconfig.cat.encoder": {
+        Language.CHINESE: "编码器配置",
+        Language.ENGLISH: "Encoder Config",
+    },
+
+    # 表格列
+    "regconfig.col.name": {
+        Language.CHINESE: "名称",
+        Language.ENGLISH: "Name",
+    },
+    "regconfig.col.address": {
+        Language.CHINESE: "地址",
+        Language.ENGLISH: "Address",
+    },
+    "regconfig.col.cia402": {
+        Language.CHINESE: "CiA402",
+        Language.ENGLISH: "CiA402",
+    },
+    "regconfig.col.value": {
+        Language.CHINESE: "值",
+        Language.ENGLISH: "Value",
+    },
+    "regconfig.col.access": {
+        Language.CHINESE: "访问",
+        Language.ENGLISH: "Access",
+    },
+    "regconfig.col.unit": {
+        Language.CHINESE: "单位",
+        Language.ENGLISH: "Unit",
+    },
+    "regconfig.col.critical": {
+        Language.CHINESE: "关键",
+        Language.ENGLISH: "Critical",
+    },
+
+    # 详情面板
+    "regconfig.detail": {
+        Language.CHINESE: "详细信息",
+        Language.ENGLISH: "Details",
+    },
+    "regconfig.modbus_addr": {
+        Language.CHINESE: "Modbus 地址:",
+        Language.ENGLISH: "Modbus Address:",
+    },
+    "regconfig.cia402_idx": {
+        Language.CHINESE: "CiA402 索引:",
+        Language.ENGLISH: "CiA402 Index:",
+    },
+    "regconfig.data_type": {
+        Language.CHINESE: "数据类型:",
+        Language.ENGLISH: "Data Type:",
+    },
+    "regconfig.default": {
+        Language.CHINESE: "默认值:",
+        Language.ENGLISH: "Default:",
+    },
+
+    # 编辑面板
+    "regconfig.edit": {
+        Language.CHINESE: "编辑",
+        Language.ENGLISH: "Edit",
+    },
+    "regconfig.current_value": {
+        Language.CHINESE: "当前值:",
+        Language.ENGLISH: "Current Value:",
+    },
+    "regconfig.new_value": {
+        Language.CHINESE: "新值:",
+        Language.ENGLISH: "New Value:",
+    },
+    "regconfig.enter_value": {
+        Language.CHINESE: "输入数值 (支持十进制/十六进制0x/二进制0b)",
+        Language.ENGLISH: "Enter value (dec/hex 0x/bin 0b)",
+    },
+    "regconfig.read": {
+        Language.CHINESE: "读取",
+        Language.ENGLISH: "Read",
+    },
+    "regconfig.write": {
+        Language.CHINESE: "写入",
+        Language.ENGLISH: "Write",
+    },
+    "regconfig.format": {
+        Language.CHINESE: "显示格式:",
+        Language.ENGLISH: "Display Format:",
+    },
+    "regconfig.format.dec": {
+        Language.CHINESE: "十进制",
+        Language.ENGLISH: "Decimal",
+    },
+    "regconfig.format.hex": {
+        Language.CHINESE: "十六进制",
+        Language.ENGLISH: "Hexadecimal",
+    },
+    "regconfig.format.bin": {
+        Language.CHINESE: "二进制",
+        Language.ENGLISH: "Binary",
+    },
+
+    # 警告和消息
+    "regconfig.critical_warning": {
+        Language.CHINESE: "⚠ 这是关键寄存器，修改可能影响电机正常运行！外部软件可能会修改此值。",
+        Language.ENGLISH: "⚠ Critical register! Modification may affect motor operation. External software may modify this value.",
+    },
+    "regconfig.connect_first": {
+        Language.CHINESE: "请先连接到伺服系统",
+        Language.ENGLISH: "Please connect to servo system first",
+    },
+    "regconfig.read_all_success": {
+        Language.CHINESE: "已读取所有寄存器",
+        Language.ENGLISH: "All registers read successfully",
+    },
+    "regconfig.read_category_success": {
+        Language.CHINESE: "已读取当前分类寄存器",
+        Language.ENGLISH: "Category registers read successfully",
+    },
+    "regconfig.read_failed": {
+        Language.CHINESE: "读取失败",
+        Language.ENGLISH: "Read failed",
+    },
+    "regconfig.write_success": {
+        Language.CHINESE: "写入成功",
+        Language.ENGLISH: "Write successful",
+    },
+    "regconfig.write_failed": {
+        Language.CHINESE: "写入失败",
+        Language.ENGLISH: "Write failed",
+    },
+    "regconfig.write_mismatch": {
+        Language.CHINESE: "写入后验证不匹配: 期望 {expected}, 实际 {actual}",
+        Language.ENGLISH: "Write verification mismatch: expected {expected}, actual {actual}",
+    },
+    "regconfig.invalid_value": {
+        Language.CHINESE: "无效的数值格式",
+        Language.ENGLISH: "Invalid value format",
+    },
+    "regconfig.confirm_write": {
+        Language.CHINESE: "确定要写入寄存器 {name} = {value} 吗?",
+        Language.ENGLISH: "Are you sure you want to write {name} = {value}?",
+    },
+
+    # 验证相关
+    "regconfig.verify_issues": {
+        Language.CHINESE: "发现以下配置问题:",
+        Language.ENGLISH: "Configuration issues found:",
+    },
+    "regconfig.verify_result": {
+        Language.CHINESE: "验证结果",
+        Language.ENGLISH: "Verification Result",
+    },
+    "regconfig.verify_ok": {
+        Language.CHINESE: "所有关键寄存器配置正确",
+        Language.ENGLISH: "All critical registers are correctly configured",
+    },
+    "regconfig.verify_failed": {
+        Language.CHINESE: "验证失败",
+        Language.ENGLISH: "Verification failed",
+    },
+    "regconfig.expected": {
+        Language.CHINESE: "期望",
+        Language.ENGLISH: "expected",
+    },
+    "regconfig.actual": {
+        Language.CHINESE: "实际",
+        Language.ENGLISH: "actual",
+    },
+
+    # EEPROM 相关
+    "regconfig.confirm_save_eeprom": {
+        Language.CHINESE: "确定要将当前参数保存到驱动器 EEPROM 吗?\n\n保存后断电重启也会保持这些设置。",
+        Language.ENGLISH: "Are you sure you want to save current parameters to driver EEPROM?\n\nSettings will persist after power cycle.",
+    },
+    "regconfig.save_eeprom_success": {
+        Language.CHINESE: "参数已保存到 EEPROM",
+        Language.ENGLISH: "Parameters saved to EEPROM",
+    },
+    "regconfig.save_eeprom_failed": {
+        Language.CHINESE: "保存到 EEPROM 失败",
+        Language.ENGLISH: "Failed to save to EEPROM",
     },
 }
 
