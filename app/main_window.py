@@ -5,10 +5,11 @@ NiMotion 伺服电机控制系统的主窗口。
 """
 
 import logging
+from pathlib import Path
 from typing import Optional
 
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QCloseEvent, QFont
+from PyQt5.QtGui import QCloseEvent, QFont, QIcon
 from PyQt5.QtWidgets import (
     QAction,
     QActionGroup,
@@ -79,6 +80,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(tr("app.title"))
         self.setMinimumSize(1024, 700)
         self.resize(1280, 800)
+
+        # 设置窗口图标
+        icon_path = Path(__file__).parent / "resources" / "motor_icon.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
 
         # 创建中央部件
         central_widget = QWidget()

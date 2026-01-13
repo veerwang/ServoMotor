@@ -14,7 +14,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import QApplication
 
 from app.main_window import MainWindow
@@ -52,6 +52,14 @@ def main() -> int:
     # 设置默认字体 (增大字体以提高可读性)
     font = QFont("Microsoft YaHei", 12)
     app.setFont(font)
+
+    # 设置应用图标
+    icon_path = Path(__file__).parent / "resources" / "motor_icon.png"
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
+        logger.info(f"已加载应用图标: {icon_path}")
+    else:
+        logger.warning(f"图标文件不存在: {icon_path}")
 
     # 创建主窗口
     window = MainWindow()
