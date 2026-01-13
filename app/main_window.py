@@ -855,10 +855,16 @@ class MainWindow(QMainWindow):
 
         # 断开连接
         if self._service.is_connected:
+            # 尝试禁用电机（忽略错误，因为设备可能已断开）
             try:
                 self._service.disable_all()
+            except Exception as e:
+                logger.debug(f"关闭时禁用电机失败（可忽略）: {e}")
+
+            # 断开串口连接
+            try:
                 self._service.disconnect()
             except Exception as e:
-                logger.error(f"关闭时断开连接失败: {e}")
+                logger.debug(f"关闭时断开连接失败（可忽略）: {e}")
 
         event.accept()
