@@ -7,13 +7,13 @@
 import logging
 from typing import Optional
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import (
     QButtonGroup,
     QGroupBox,
     QHBoxLayout,
     QLabel,
-    QRadioButton,
+    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -57,23 +57,61 @@ class AxisPanel(QGroupBox):
 
         # 轴选择按钮组
         axis_layout = QHBoxLayout()
+        axis_layout.setSpacing(8)
         self._axis_group = QButtonGroup(self)
+        self._axis_group.setExclusive(True)
+
+        # 按钮样式
+        self._button_style_normal = """
+            QPushButton {
+                font-size: 16px;
+                font-weight: bold;
+                min-width: 60px;
+                min-height: 40px;
+                border: 2px solid #555;
+                border-radius: 6px;
+                background-color: #3a3a3a;
+                color: #aaa;
+            }
+            QPushButton:hover {
+                background-color: #4a4a4a;
+                border-color: #666;
+            }
+        """
+        self._button_style_selected = """
+            QPushButton {
+                font-size: 16px;
+                font-weight: bold;
+                min-width: 60px;
+                min-height: 40px;
+                border: 2px solid #4fc3f7;
+                border-radius: 6px;
+                background-color: #1565c0;
+                color: #fff;
+            }
+            QPushButton:hover {
+                background-color: #1976d2;
+            }
+        """
 
         for axis in AxisName:
             config = get_axis_config(axis)
-            radio = QRadioButton(tr(f"axis.{axis.value.lower()}"))
-            radio.setToolTip(
+            btn = QPushButton(axis.value)
+            btn.setCheckable(True)
+            btn.setToolTip(
                 f"{tr('axis.model')}: {config.model}\n"
                 f"{tr('axis.power')}: {config.motor_power}W\n"
                 f"{tr('axis.stroke')}: {config.stroke_min}-{config.stroke_max}mm"
             )
-            self._axis_group.addButton(radio, axis.value.encode()[0])  # X=88, Y=89, Z=90
-            axis_layout.addWidget(radio)
-            self._axis_buttons[axis] = radio
+            btn.setStyleSheet(self._button_style_normal)
+            self._axis_group.addButton(btn, axis.value.encode()[0])  # X=88, Y=89, Z=90
+            axis_layout.addWidget(btn)
+            self._axis_buttons[axis] = btn
 
             # 默认选中 Z 轴
             if axis == AxisName.Z:
-                radio.setChecked(True)
+                btn.setChecked(True)
+                btn.setStyleSheet(self._button_style_selected)
 
         layout.addLayout(axis_layout)
 
@@ -85,10 +123,17 @@ class AxisPanel(QGroupBox):
         # 连接信号
         self._axis_group.buttonClicked.connect(self._on_axis_clicked)
 
-    def _on_axis_clicked(self, button: QRadioButton) -> None:
+    def _on_axis_clicked(self, button: QPushButton) -> None:
         """轴选择按钮点击"""
         axis_name = button.text()[0]  # 获取第一个字符 X/Y/Z
         axis = AxisName(axis_name)
+
+        # 更新所有按钮样式
+        for ax, btn in self._axis_buttons.items():
+            if ax == axis:
+                btn.setStyleSheet(self._button_style_selected)
+            else:
+                btn.setStyleSheet(self._button_style_normal)
 
         self._service.current_axis = axis
         self._update_info(axis)
@@ -127,10 +172,10 @@ class AxisPanel(QGroupBox):
         """刷新界面文本"""
         self.setTitle(tr("axis.title"))
 
-        for axis, radio in self._axis_buttons.items():
+        for axis, btn in self._axis_buttons.items():
             config = get_axis_config(axis)
-            radio.setText(tr(f"axis.{axis.value.lower()}"))
-            radio.setToolTip(
+            # 按钮文字只显示轴名 (X/Y/Z)，不需要翻译
+            btn.setToolTip(
                 f"{tr('axis.model')}: {config.model}\n"
                 f"{tr('axis.power')}: {config.motor_power}W\n"
                 f"{tr('axis.stroke')}: {config.stroke_min}-{config.stroke_max}mm"
