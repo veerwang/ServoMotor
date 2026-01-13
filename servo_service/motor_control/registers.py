@@ -282,6 +282,103 @@ class Registers:
         object_subindex=0x00,
     )
 
+    # 回零超时 (2005h:1Ch)
+    # 根据 NiMotion 手册: 2005h:1Ch → Modbus 0x012E
+    # 重要: 默认值为 0 会导致回零立即超时!
+    HOMING_TIMEOUT = RegisterDef(
+        address=0x012E,
+        name="HomingTimeout",
+        description="回零超时时间 (ms)",
+        object_index=0x2005,
+        object_subindex=0x1C,
+    )
+
+    # 堵转回零扭矩阈值 (2007h:13h)
+    # 根据 NiMotion 手册: 2007h:13h → Modbus 0x0170
+    BLOCKING_TORQUE = RegisterDef(
+        address=0x0170,
+        name="BlockingTorque",
+        description="堵转回零扭矩阈值 (0.1% 单位)",
+        object_index=0x2007,
+        object_subindex=0x13,
+    )
+
+    # 堵转检测时间 (2007h:15h)
+    # 根据 NiMotion 手册: 2007h:15h → Modbus 0x0172
+    BLOCKING_TIME = RegisterDef(
+        address=0x0172,
+        name="BlockingTime",
+        description="堵转检测时间 (ms)",
+        object_index=0x2007,
+        object_subindex=0x15,
+    )
+
+    # ==================== DI 配置寄存器 ====================
+
+    # DI1 功能 (2003h:03h)
+    DI1_FUNCTION = RegisterDef(
+        address=0x00D5,
+        name="DI1Function",
+        description="DI1 功能编号",
+        object_index=0x2003,
+        object_subindex=0x03,
+    )
+
+    # DI1 逻辑 (2003h:04h)
+    DI1_LOGIC = RegisterDef(
+        address=0x00D6,
+        name="DI1Logic",
+        description="DI1 逻辑 (0=低电平有效, 1=高电平有效)",
+        object_index=0x2003,
+        object_subindex=0x04,
+    )
+
+    # DI2 功能 (2003h:05h)
+    DI2_FUNCTION = RegisterDef(
+        address=0x00D7,
+        name="DI2Function",
+        description="DI2 功能编号",
+        object_index=0x2003,
+        object_subindex=0x05,
+    )
+
+    # DI2 逻辑 (2003h:06h)
+    DI2_LOGIC = RegisterDef(
+        address=0x00D8,
+        name="DI2Logic",
+        description="DI2 逻辑",
+        object_index=0x2003,
+        object_subindex=0x06,
+    )
+
+    # DI3 功能 (2003h:07h)
+    DI3_FUNCTION = RegisterDef(
+        address=0x00D9,
+        name="DI3Function",
+        description="DI3 功能编号",
+        object_index=0x2003,
+        object_subindex=0x07,
+    )
+
+    # DI3 逻辑 (2003h:08h)
+    DI3_LOGIC = RegisterDef(
+        address=0x00DA,
+        name="DI3Logic",
+        description="DI3 逻辑",
+        object_index=0x2003,
+        object_subindex=0x08,
+    )
+
+    # DI 物理状态监控 (200Bh:05h)
+    DI_PHYSICAL_STATE = RegisterDef(
+        address=0x01E2,
+        name="DIPhysicalState",
+        description="DI 物理状态 (位0=DI1, 位1=DI2, 位2=DI3)",
+        access=RegisterAccess.READ_ONLY,
+        object_index=0x200B,
+        object_subindex=0x05,
+    )
+
     # ==================== 数字输入输出 ====================
 
     # 数字输入 (60FDh)

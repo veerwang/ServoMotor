@@ -2622,8 +2622,19 @@ tests/integration/
 ├── test_l4_003_homing.py           # 回零操作测试
 ├── test_max_average_speed.py       # 最大平均速度测试
 ├── test_gui_comprehensive.py       # GUI 界面综合测试
+├── test_motor_initialization.py    # 电机参数初始化测试
 ├── diagnose_limit_switches.py      # 限位开关诊断
 └── detect_limit_switch_wiring.py   # 限位开关接线检测
+```
+
+#### 电机参数初始化测试用法
+
+```bash
+# 初始化并验证 Z 轴参数
+python3 tests/integration/test_motor_initialization.py --axis Z
+
+# 仅验证参数 (不执行初始化)
+python3 tests/integration/test_motor_initialization.py --axis Z --verify-only
 ```
 
 ### 10. 回零 (Homing) 注意事项

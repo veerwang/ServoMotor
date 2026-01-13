@@ -807,5 +807,88 @@ class Motor:
             self._slave_id, Registers.DIGITAL_OUTPUTS.address, value
         )
 
+    # ==================== 参数初始化 ====================
+
+    def set_homing_timeout(self, timeout_ms: int) -> None:
+        """
+        设置回零超时时间
+
+        Args:
+            timeout_ms: 超时时间 (毫秒)
+
+        Note:
+            默认值为 0ms 会导致回零立即超时，建议设置为 60000ms (60秒)
+        """
+        self._client.write_register(
+            self._slave_id, Registers.HOMING_TIMEOUT.address, timeout_ms
+        )
+        logger.debug(f"设置回零超时: {timeout_ms}ms")
+
+    def set_blocking_parameters(self, torque: int, time_ms: int) -> None:
+        """
+        设置堵转回零参数
+
+        Args:
+            torque: 扭矩阈值 (0.1% 单位, 300 = 30%)
+            time_ms: 检测时间 (毫秒)
+        """
+        self._client.write_register(
+            self._slave_id, Registers.BLOCKING_TORQUE.address, torque
+        )
+        self._client.write_register(
+            self._slave_id, Registers.BLOCKING_TIME.address, time_ms
+        )
+        logger.debug(f"设置堵转参数: 扭矩阈值={torque/10}%, 检测时间={time_ms}ms")
+
+    def set_di_config(
+        self,
+        di_number: int,
+        function: int,
+        logic: int = 0,
+    ) -> None:
+        """
+        配置数字输入 (DI) 功能
+
+        Args:
+            di_number: DI 编号 (1, 2, 或 3)
+            function: 功能编号 (0=未定义, 14=正限位, 15=负限位, 31=原点等)
+            logic: 逻辑 (0=低电平有效, 1=高电平有效, 2=上升沿, 3=下降沿)
+
+        Note:
+            常用功能编号:
+            - 0: 未定义
+            - 1: 电机使能 (NiMotion 模式)
+            - 2: 报警复位
+            - 14: 正限位开关
+            - 15: 负限位开关
+            - 31: 原点开关
+        """
+        if di_number == 1:
+            func_reg = Registers.DI1_FUNCTION.address
+            logic_reg = Registers.DI1_LOGIC.address
+        elif di_number == 2:
+            func_reg = Registers.DI2_FUNCTION.address
+            logic_reg = Registers.DI2_LOGIC.address
+        elif di_number == 3:
+            func_reg = Registers.DI3_FUNCTION.address
+            logic_reg = Registers.DI3_LOGIC.address
+        else:
+            raise ValueError(f"无效的 DI 编号: {di_number}, 必须是 1, 2, 或 3")
+
+        self._client.write_register(self._slave_id, func_reg, function)
+        self._client.write_register(self._slave_id, logic_reg, logic)
+        logger.debug(f"配置 DI{di_number}: 功能={function}, 逻辑={logic}")
+
+    def read_di_physical_state(self) -> int:
+        """
+        读取 DI 物理状态
+
+        Returns:
+            DI 状态 (位0=DI1, 位1=DI2, 位2=DI3)
+        """
+        return self._client.read_register(
+            self._slave_id, Registers.DI_PHYSICAL_STATE.address
+        )
+
     def __repr__(self) -> str:
         return f"Motor(slave_id={self._slave_id}, state={self.get_state().value})"

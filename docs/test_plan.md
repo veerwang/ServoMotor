@@ -1171,6 +1171,50 @@ def test_multi_axis():
         print("所有轴已禁用")
 ```
 
+#### TC-L4-011: 电机参数初始化
+
+| 项目 | 内容 |
+|------|------|
+| **测试目的** | 验证电机参数初始化功能 |
+| **测试步骤** | 1. 连接电机<br>2. 调用 initialize_motor_parameters()<br>3. 验证参数已写入驱动器 |
+| **预期结果** | 回零超时、DI配置、堵转参数正确写入 |
+
+> **重要**: 回零超时参数默认值为 0ms，会导致回零立即超时，必须初始化为合理值 (如 60000ms)
+
+```python
+def test_motor_initialization():
+    with ServoService(port="/dev/ttyUSB0") as service:
+        service.current_axis = AxisName.Z
+
+        # 执行初始化
+        service.initialize_motor_parameters()
+
+        # 验证参数
+        motor = service.get_motor()
+        modbus = service.get_modbus_client()
+        slave_id = 3
+
+        # 验证回零超时 (应为 60000ms)
+        timeout = modbus.read_register(slave_id, 0x012E)
+        print(f"回零超时: {timeout}ms")
+        assert timeout == 60000, f"回零超时错误: {timeout}"
+
+        # 验证 DI2 (负限位)
+        di2_func = modbus.read_register(slave_id, 0x00D7)
+        assert di2_func == 15, f"DI2功能错误: {di2_func}"
+
+        # 验证 DI3 (正限位)
+        di3_func = modbus.read_register(slave_id, 0x00D9)
+        assert di3_func == 14, f"DI3功能错误: {di3_func}"
+
+        print("电机参数初始化测试通过")
+```
+
+**测试脚本:**
+```bash
+python3 tests/integration/test_motor_initialization.py --axis Z
+```
+
 ### 6.4 测试结果记录表
 
 | 用例编号 | 测试项目 | 测试日期 | 结果 | 备注 |

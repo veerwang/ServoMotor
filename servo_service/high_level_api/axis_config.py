@@ -90,8 +90,37 @@ class AxisConfig:
     homing_method: Optional[int] = None
     """回零方式 (HomingMethod 枚举值)"""
 
+    homing_timeout: int = 60000
+    """回零超时时间 (ms)，默认60秒"""
+
     velocity_polarity: int = 1
     """速度极性 (1 或 -1，用于修正运动方向)"""
+
+    # DI 配置 (数字输入)
+    di1_function: Optional[int] = None
+    """DI1 功能编号 (None=不配置)"""
+
+    di1_logic: int = 0
+    """DI1 逻辑 (0=低电平有效, 1=高电平有效)"""
+
+    di2_function: Optional[int] = None
+    """DI2 功能编号"""
+
+    di2_logic: int = 0
+    """DI2 逻辑"""
+
+    di3_function: Optional[int] = None
+    """DI3 功能编号"""
+
+    di3_logic: int = 0
+    """DI3 逻辑"""
+
+    # 堵转回零参数
+    blocking_torque: int = 300
+    """堵转回零扭矩阈值 (0.1% 单位，300=30%)"""
+
+    blocking_time: int = 500
+    """堵转检测时间 (ms)"""
 
     @property
     def stroke(self) -> float:
@@ -237,7 +266,16 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         homing_velocity_low=5.0,
         homing_acceleration=100.0,
         homing_method=17,  # NEGATIVE_LIMIT_SWITCH: 负限位回零
+        homing_timeout=60000,  # 60秒回零超时
         velocity_polarity=-1,  # 速度方向反转
+        # DI 配置 (Z轴限位开关，2026-01-12 验证)
+        di2_function=15,  # DI2 = 负限位 (下限位)
+        di2_logic=0,      # 低电平有效
+        di3_function=14,  # DI3 = 正限位 (上限位)
+        di3_logic=0,      # 低电平有效
+        # 堵转回零参数
+        blocking_torque=300,  # 30%
+        blocking_time=500,    # 500ms
     ),
 }
 

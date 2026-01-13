@@ -205,6 +205,97 @@ class ServoService:
         # 重置回零状态
         self._homed_axes = {axis: False for axis in AxisName}
 
+    # ==================== 电机参数初始化 ====================
+
+    def initialize_motor_parameters(
+        self,
+        axis: Optional[AxisName] = None,
+        verbose: bool = True,
+    ) -> None:
+        """
+        初始化电机参数
+
+        根据 AxisConfig 中的配置，将以下参数写入驱动器:
+        - 回零超时时间
+        - DI (数字输入) 功能配置
+        - 堵转回零参数
+
+        Args:
+            axis: 轴名称 (None 则使用当前轴)
+            verbose: 是否显示详细信息
+
+        Note:
+            建议在连接后、执行运动前调用此函数，确保驱动器参数正确。
+            特别是回零超时参数，默认值 0ms 会导致回零立即超时!
+        """
+        if not self.is_connected:
+            raise MotorError("未连接到伺服系统")
+
+        if axis is None:
+            axis = self._current_axis
+
+        motor = self.get_motor(axis)
+        config = self.get_axis_config(axis)
+
+        if verbose:
+            logger.info(f"初始化 {axis.value} 轴电机参数...")
+
+        # 1. 设置回零超时
+        motor.set_homing_timeout(config.homing_timeout)
+        if verbose:
+            logger.info(f"  回零超时: {config.homing_timeout}ms")
+
+        # 2. 设置堵转回零参数
+        motor.set_blocking_parameters(config.blocking_torque, config.blocking_time)
+        if verbose:
+            logger.info(
+                f"  堵转参数: 扭矩阈值={config.blocking_torque/10}%, "
+                f"检测时间={config.blocking_time}ms"
+            )
+
+        # 3. 配置 DI 功能
+        di_configs = [
+            (1, config.di1_function, config.di1_logic),
+            (2, config.di2_function, config.di2_logic),
+            (3, config.di3_function, config.di3_logic),
+        ]
+
+        for di_num, func, logic in di_configs:
+            if func is not None:
+                motor.set_di_config(di_num, func, logic)
+                func_name = self._get_di_function_name(func)
+                if verbose:
+                    logger.info(f"  DI{di_num}: {func_name} (逻辑={logic})")
+
+        if verbose:
+            logger.info(f"{axis.value} 轴电机参数初始化完成")
+
+    def initialize_all_motors(self, verbose: bool = True) -> None:
+        """
+        初始化所有电机参数
+
+        Args:
+            verbose: 是否显示详细信息
+        """
+        for axis in self._axis_configs.keys():
+            try:
+                self.initialize_motor_parameters(axis, verbose=verbose)
+            except Exception as e:
+                logger.warning(f"初始化 {axis.value} 轴失败: {e}")
+
+    @staticmethod
+    def _get_di_function_name(function: int) -> str:
+        """获取 DI 功能名称"""
+        di_functions = {
+            0: "未定义",
+            1: "电机使能",
+            2: "报警复位",
+            14: "正限位开关",
+            15: "负限位开关",
+            31: "原点开关",
+        }
+        return di_functions.get(function, f"功能{function}")
+
     # ==================== 轴访问 ====================
 
     def get_motor(self, axis: Optional[AxisName] = None) -> Motor:
