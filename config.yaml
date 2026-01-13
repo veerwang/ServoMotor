@@ -1,0 +1,134 @@
+# NiMotion 伺服电机控制系统配置文件
+
+# 应用配置
+app:
+  language: "zh_CN"
+  theme: "default"
+  window:
+    width: 1280
+    height: 800
+    remember_position: true
+    remember_size: true
+
+# 通信配置
+communication:
+  # 默认串口 (空字符串表示自动检测)
+  default_port: ""
+  # 波特率
+  baudrate: 115200
+  # 通信超时 (秒)
+  timeout: 0.1
+  # 重试次数
+  retries: 3
+  # 帧间隔 (秒), 默认 3.5 字符时间
+  frame_interval: 0.003
+
+# 轴配置 (XYG321-A 三轴平台)
+axes:
+  # 默认控制轴
+  default_axis: "Z"
+
+  # X 轴配置
+  x:
+    slave_id: 1
+    model: "CFG8"
+    motor_power: 200
+    has_brake: false
+    ball_screw_lead: 20.0
+    max_velocity: 1000.0
+    stroke_min: 50.0
+    stroke_max: 1100.0
+    positioning_accuracy: 0.02
+    repeat_accuracy: 0.005
+    max_payload_horizontal: 75.0
+    max_payload_vertical: 30.0
+
+  # Y 轴配置
+  y:
+    slave_id: 2
+    model: "CFG5"
+    motor_power: 100
+    has_brake: false
+    ball_screw_lead: 10.0
+    max_velocity: 500.0
+    stroke_min: 100.0
+    stroke_max: 500.0
+    positioning_accuracy: 0.015
+    repeat_accuracy: 0.005
+    max_payload_horizontal: 30.0
+    max_payload_vertical: 15.0
+
+  # Z 轴配置
+  z:
+    slave_id: 3
+    model: "CFG4"
+    motor_power: 100
+    has_brake: true
+    ball_screw_lead: 10.0
+    max_velocity: 500.0
+    stroke_min: 50.0
+    stroke_max: 100.0
+    positioning_accuracy: 0.01
+    repeat_accuracy: 0.005
+    max_payload_horizontal: 20.0
+    max_payload_vertical: 10.0
+
+# 控制参数默认值
+control:
+  # 点动速度 (mm/s)
+  jog_velocity: 100.0
+  # 位置模式默认速度 (mm/s)
+  position_velocity: 200.0
+  # 默认加速度 (mm/s²)
+  acceleration: 500.0
+  # 默认减速度 (mm/s²)
+  deceleration: 500.0
+  # 快速停止减速度 (mm/s²)
+  quick_stop_deceleration: 1000.0
+  # 回零高速 (mm/s)
+  homing_velocity_high: 50.0
+  # 回零低速 (mm/s)
+  homing_velocity_low: 10.0
+  # 回零加速度 (mm/s²)
+  homing_acceleration: 100.0
+
+# 监控配置
+monitor:
+  # 状态刷新间隔 (ms)
+  status_interval: 100
+  # 曲线刷新间隔 (ms)
+  plot_interval: 50
+  # 曲线历史时长 (秒)
+  plot_history: 10
+  # 启用状态监控
+  enable_status_monitor: true
+
+# 日志配置
+logging:
+  # 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  # 日志文件路径
+  file: "logs/servo_motor.log"
+  # 单个日志文件最大大小 (字节)
+  max_size: 10485760  # 10MB
+  # 日志文件备份数量
+  backup_count: 5
+  # 控制台输出
+  console: true
+  # 日志格式
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# 限位开关默认配置
+limit_switches:
+  # 正限位开关
+  positive:
+    di_number: 1
+    logic: 0  # 0=常闭, 1=常开
+  # 负限位开关
+  negative:
+    di_number: 2
+    logic: 0
+  # 原点开关
+  home:
+    di_number: 3
+    logic: 0

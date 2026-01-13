@@ -1,0 +1,27 @@
+# NiMotion 伺服电机控制系统 - 开发依赖
+
+# 包含运行依赖
+-r requirements.txt
+
+# 测试框架
+pytest>=7.0.0
+pytest-qt>=4.0.0
+pytest-cov>=4.0.0
+
+# 代码格式化
+black>=22.0.0
+
+# 导入排序
+isort>=5.10.0
+
+# 代码检查
+flake8>=5.0.0
+
+# 类型检查
+mypy>=0.950
+types-PyYAML
+types-pyserial
+
+# 文档生成 (可选)
+# sphinx>=5.0.0
+# sphinx-rtd-theme>=1.0.0

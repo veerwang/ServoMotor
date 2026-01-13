@@ -1,0 +1,265 @@
+"""
+轴配置模块
+
+定义 XYG321-A 三轴平台的轴配置和参数。
+"""
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from servo_service.motor_control import HomingMethod
+
+
+class AxisName(Enum):
+    """轴名称枚举"""
+
+    X = "X"
+    Y = "Y"
+    Z = "Z"
+
+
+@dataclass
+class AxisConfig:
+    """轴配置数据类"""
+
+    name: AxisName
+    """轴名称"""
+
+    slave_id: int
+    """Modbus 从站地址"""
+
+    model: str
+    """电机型号"""
+
+    motor_power: int
+    """电机功率 (W)"""
+
+    has_brake: bool
+    """是否有抱闸"""
+
+    ball_screw_lead: float
+    """丝杠导程 (mm/rev)"""
+
+    max_velocity: float
+    """最大速度 (mm/s)"""
+
+    stroke_min: float
+    """行程最小值 (mm)"""
+
+    stroke_max: float
+    """行程最大值 (mm)"""
+
+    positioning_accuracy: float
+    """定位精度 (mm)"""
+
+    repeat_accuracy: float
+    """重复定位精度 (mm)"""
+
+    max_payload_horizontal: float
+    """最大水平负载 (kg)"""
+
+    max_payload_vertical: float
+    """最大垂直负载 (kg)"""
+
+    # 编码器参数
+    encoder_resolution: int = 10000
+    """编码器分辨率 (脉冲/转)"""
+
+    # 默认运动参数
+    default_velocity: float = 100.0
+    """默认速度 (mm/s)"""
+
+    default_acceleration: float = 500.0
+    """默认加速度 (mm/s²)"""
+
+    default_deceleration: float = 500.0
+    """默认减速度 (mm/s²)"""
+
+    # 回零参数
+    homing_velocity_high: float = 50.0
+    """回零高速 (mm/s)"""
+
+    homing_velocity_low: float = 10.0
+    """回零低速 (mm/s)"""
+
+    homing_acceleration: float = 100.0
+    """回零加速度 (mm/s²)"""
+
+    homing_method: Optional[int] = None
+    """回零方式 (HomingMethod 枚举值)"""
+
+    velocity_polarity: int = 1
+    """速度极性 (1 或 -1，用于修正运动方向)"""
+
+    @property
+    def stroke(self) -> float:
+        """有效行程 (mm)"""
+        return self.stroke_max - self.stroke_min
+
+    @property
+    def mm_per_pulse(self) -> float:
+        """每脉冲位移 (mm/pulse)"""
+        return self.ball_screw_lead / self.encoder_resolution
+
+    @property
+    def pulses_per_mm(self) -> float:
+        """每毫米脉冲数 (pulse/mm)"""
+        return self.encoder_resolution / self.ball_screw_lead
+
+    def mm_to_pulses(self, mm: float) -> int:
+        """
+        毫米转脉冲
+
+        Args:
+            mm: 毫米值
+
+        Returns:
+            脉冲值
+        """
+        return int(mm * self.pulses_per_mm)
+
+    def pulses_to_mm(self, pulses: int) -> float:
+        """
+        脉冲转毫米
+
+        Args:
+            pulses: 脉冲值
+
+        Returns:
+            毫米值
+        """
+        return pulses * self.mm_per_pulse
+
+    def velocity_mm_to_pulses(self, velocity_mm_s: float) -> int:
+        """
+        速度: mm/s 转 pulse/s
+
+        Args:
+            velocity_mm_s: 速度 (mm/s)
+
+        Returns:
+            速度 (pulse/s)
+        """
+        return int(velocity_mm_s * self.pulses_per_mm)
+
+    def velocity_pulses_to_mm(self, velocity_pulses_s: int) -> float:
+        """
+        速度: pulse/s 转 mm/s
+
+        Args:
+            velocity_pulses_s: 速度 (pulse/s)
+
+        Returns:
+            速度 (mm/s)
+        """
+        return velocity_pulses_s * self.mm_per_pulse
+
+    def is_position_valid(self, position_mm: float) -> bool:
+        """
+        检查位置是否在有效行程内
+
+        Args:
+            position_mm: 位置 (mm)
+
+        Returns:
+            是否有效
+        """
+        return self.stroke_min <= position_mm <= self.stroke_max
+
+
+# XYG321-A 平台预定义配置
+DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
+    AxisName.X: AxisConfig(
+        name=AxisName.X,
+        slave_id=1,
+        model="CFG8",
+        motor_power=200,
+        has_brake=False,
+        ball_screw_lead=20.0,
+        max_velocity=1000.0,
+        stroke_min=50.0,
+        stroke_max=1100.0,
+        positioning_accuracy=0.02,
+        repeat_accuracy=0.005,
+        max_payload_horizontal=75.0,
+        max_payload_vertical=30.0,
+        encoder_resolution=10000,
+        default_velocity=200.0,
+        default_acceleration=500.0,
+        default_deceleration=500.0,
+        homing_velocity_high=50.0,
+        homing_velocity_low=10.0,
+        homing_acceleration=100.0,
+    ),
+    AxisName.Y: AxisConfig(
+        name=AxisName.Y,
+        slave_id=2,
+        model="CFG5",
+        motor_power=100,
+        has_brake=False,
+        ball_screw_lead=10.0,
+        max_velocity=500.0,
+        stroke_min=100.0,
+        stroke_max=500.0,
+        positioning_accuracy=0.015,
+        repeat_accuracy=0.005,
+        max_payload_horizontal=30.0,
+        max_payload_vertical=15.0,
+        encoder_resolution=10000,
+        default_velocity=100.0,
+        default_acceleration=500.0,
+        default_deceleration=500.0,
+        homing_velocity_high=30.0,
+        homing_velocity_low=5.0,
+        homing_acceleration=100.0,
+    ),
+    AxisName.Z: AxisConfig(
+        name=AxisName.Z,
+        slave_id=3,
+        model="CFG4",
+        motor_power=100,
+        has_brake=True,
+        ball_screw_lead=10.0,
+        max_velocity=500.0,
+        stroke_min=0.0,
+        stroke_max=61.0,
+        positioning_accuracy=0.01,
+        repeat_accuracy=0.005,
+        max_payload_horizontal=20.0,
+        max_payload_vertical=10.0,
+        encoder_resolution=10000,
+        default_velocity=100.0,
+        default_acceleration=500.0,
+        default_deceleration=500.0,
+        homing_velocity_high=30.0,
+        homing_velocity_low=5.0,
+        homing_acceleration=100.0,
+        homing_method=17,  # NEGATIVE_LIMIT_SWITCH: 负限位回零
+        velocity_polarity=-1,  # 速度方向反转
+    ),
+}
+
+
+def get_axis_config(axis: AxisName) -> AxisConfig:
+    """
+    获取轴配置
+
+    Args:
+        axis: 轴名称
+
+    Returns:
+        轴配置
+    """
+    return DEFAULT_AXIS_CONFIGS[axis]
+
+
+def get_all_axis_configs() -> Dict[AxisName, AxisConfig]:
+    """
+    获取所有轴配置
+
+    Returns:
+        轴配置字典
+    """
+    return DEFAULT_AXIS_CONFIGS.copy()
