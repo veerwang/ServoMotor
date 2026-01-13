@@ -45,7 +45,7 @@ def main() -> int:
 
     # 创建应用
     app = QApplication(sys.argv)
-    app.setApplicationName("NiMotion 伺服电机控制系统")
+    app.setApplicationName("NiMotion Servo")  # 英文名称避免任务栏乱码
     app.setOrganizationName("NiMotion")
     app.setOrganizationDomain("nimotion.com")
 
