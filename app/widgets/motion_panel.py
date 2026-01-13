@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import (
 )
 
 from servo_service import HomingMethod, ServoService
+from ..i18n import tr
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ class MotionPanel(QGroupBox):
             service: 伺服服务实例
             parent: 父组件
         """
-        super().__init__("运动控制", parent)
+        super().__init__(tr("motion.title"), parent)
         self._service = service
         self._worker: Optional[MotionWorker] = None
         self._init_ui()
@@ -79,21 +80,21 @@ class MotionPanel(QGroupBox):
         # 使能/停止按钮组
         control_layout = QHBoxLayout()
 
-        self._enable_btn = QPushButton("使能")
+        self._enable_btn = QPushButton(tr("motion.enable"))
         self._enable_btn.setProperty("class", "success")
         self._enable_btn.clicked.connect(self.enable_clicked)
         control_layout.addWidget(self._enable_btn)
 
-        self._disable_btn = QPushButton("禁用")
+        self._disable_btn = QPushButton(tr("motion.disable"))
         self._disable_btn.clicked.connect(self.disable_clicked)
         control_layout.addWidget(self._disable_btn)
 
-        self._stop_btn = QPushButton("停止")
+        self._stop_btn = QPushButton(tr("motion.stop"))
         self._stop_btn.setProperty("class", "warning")
         self._stop_btn.clicked.connect(self.stop_clicked)
         control_layout.addWidget(self._stop_btn)
 
-        self._quick_stop_btn = QPushButton("急停")
+        self._quick_stop_btn = QPushButton(tr("motion.quick_stop"))
         self._quick_stop_btn.setProperty("class", "danger")
         self._quick_stop_btn.clicked.connect(self.quick_stop_clicked)
         control_layout.addWidget(self._quick_stop_btn)
@@ -101,21 +102,21 @@ class MotionPanel(QGroupBox):
         layout.addLayout(control_layout)
 
         # 选项卡
-        tab_widget = QTabWidget()
+        self._tab_widget = QTabWidget()
 
         # 点动控制页
         jog_tab = self._create_jog_tab()
-        tab_widget.addTab(jog_tab, "点动")
+        self._tab_widget.addTab(jog_tab, tr("motion.jog"))
 
         # 位置控制页
         position_tab = self._create_position_tab()
-        tab_widget.addTab(position_tab, "位置")
+        self._tab_widget.addTab(position_tab, tr("motion.position"))
 
         # 回零控制页
         home_tab = self._create_home_tab()
-        tab_widget.addTab(home_tab, "回零")
+        self._tab_widget.addTab(home_tab, tr("motion.home"))
 
-        layout.addWidget(tab_widget)
+        layout.addWidget(self._tab_widget)
 
     def _create_jog_tab(self) -> QWidget:
         """创建点动控制页"""
@@ -129,18 +130,19 @@ class MotionPanel(QGroupBox):
         self._jog_speed_spin.setValue(100)
         self._jog_speed_spin.setSuffix(" mm/s")
         self._jog_speed_spin.setDecimals(1)
-        speed_layout.addRow("点动速度:", self._jog_speed_spin)
+        self._jog_speed_label = QLabel(tr("motion.jog_speed"))
+        speed_layout.addRow(self._jog_speed_label, self._jog_speed_spin)
         layout.addLayout(speed_layout)
 
         # 方向按钮
         dir_layout = QHBoxLayout()
 
-        self._jog_neg_btn = QPushButton("◀ 负向")
+        self._jog_neg_btn = QPushButton(tr("motion.negative"))
         self._jog_neg_btn.pressed.connect(lambda: self._start_jog(-1))
         self._jog_neg_btn.released.connect(self._stop_jog)
         dir_layout.addWidget(self._jog_neg_btn)
 
-        self._jog_pos_btn = QPushButton("正向 ▶")
+        self._jog_pos_btn = QPushButton(tr("motion.positive"))
         self._jog_pos_btn.pressed.connect(lambda: self._start_jog(1))
         self._jog_pos_btn.released.connect(self._stop_jog)
         dir_layout.addWidget(self._jog_pos_btn)
@@ -155,7 +157,8 @@ class MotionPanel(QGroupBox):
         self._step_spin.setValue(1.0)
         self._step_spin.setSuffix(" mm")
         self._step_spin.setDecimals(3)
-        step_layout.addWidget(QLabel("步进:"))
+        self._step_label = QLabel(tr("motion.step"))
+        step_layout.addWidget(self._step_label)
         step_layout.addWidget(self._step_spin)
 
         self._step_neg_btn = QPushButton("-")
@@ -186,26 +189,28 @@ class MotionPanel(QGroupBox):
         self._target_pos_spin.setValue(0)
         self._target_pos_spin.setSuffix(" mm")
         self._target_pos_spin.setDecimals(3)
-        form_layout.addRow("目标位置:", self._target_pos_spin)
+        self._target_pos_label = QLabel(tr("motion.target_pos"))
+        form_layout.addRow(self._target_pos_label, self._target_pos_spin)
 
         self._pos_speed_spin = QDoubleSpinBox()
         self._pos_speed_spin.setRange(0.1, 1000)
         self._pos_speed_spin.setValue(100)
         self._pos_speed_spin.setSuffix(" mm/s")
         self._pos_speed_spin.setDecimals(1)
-        form_layout.addRow("移动速度:", self._pos_speed_spin)
+        self._move_speed_label = QLabel(tr("motion.move_speed"))
+        form_layout.addRow(self._move_speed_label, self._pos_speed_spin)
 
         layout.addLayout(form_layout)
 
         # 移动按钮
         btn_layout = QHBoxLayout()
 
-        self._move_abs_btn = QPushButton("绝对移动")
+        self._move_abs_btn = QPushButton(tr("motion.move_abs"))
         self._move_abs_btn.setProperty("class", "success")
         self._move_abs_btn.clicked.connect(self._move_absolute)
         btn_layout.addWidget(self._move_abs_btn)
 
-        self._move_rel_btn = QPushButton("相对移动")
+        self._move_rel_btn = QPushButton(tr("motion.move_rel"))
         self._move_rel_btn.clicked.connect(self._move_relative)
         btn_layout.addWidget(self._move_rel_btn)
 
@@ -213,17 +218,20 @@ class MotionPanel(QGroupBox):
 
         # 快速定位按钮
         preset_layout = QGridLayout()
-        preset_layout.addWidget(QLabel("快速定位:"), 0, 0, 1, 4)
+        self._quick_pos_label = QLabel(tr("motion.quick_pos"))
+        preset_layout.addWidget(self._quick_pos_label, 0, 0, 1, 4)
 
+        self._preset_btns = {}
         presets = [
-            ("最小", "min"),
-            ("中点", "mid"),
-            ("最大", "max"),
+            ("min", tr("motion.min")),
+            ("mid", tr("motion.mid")),
+            ("max", tr("motion.max")),
         ]
-        for i, (label, pos) in enumerate(presets):
+        for i, (pos, label) in enumerate(presets):
             btn = QPushButton(label)
             btn.clicked.connect(lambda checked, p=pos: self._move_preset(p))
             preset_layout.addWidget(btn, 1, i)
+            self._preset_btns[pos] = btn
 
         layout.addLayout(preset_layout)
 
@@ -236,18 +244,18 @@ class MotionPanel(QGroupBox):
         layout = QVBoxLayout(widget)
 
         # 回零按钮
-        self._home_btn = QPushButton("开始回零")
+        self._home_btn = QPushButton(tr("motion.start_home"))
         self._home_btn.setProperty("class", "success")
         self._home_btn.clicked.connect(self.home_clicked)
         layout.addWidget(self._home_btn)
 
         # 设置当前位置为原点
-        self._set_home_btn = QPushButton("将当前位置设为原点")
+        self._set_home_btn = QPushButton(tr("motion.set_home"))
         self._set_home_btn.clicked.connect(self._set_current_as_home)
         layout.addWidget(self._set_home_btn)
 
         # 故障复位
-        self._fault_reset_btn = QPushButton("故障复位")
+        self._fault_reset_btn = QPushButton(tr("motion.fault_reset"))
         self._fault_reset_btn.setProperty("class", "warning")
         self._fault_reset_btn.clicked.connect(self._fault_reset)
         layout.addWidget(self._fault_reset_btn)
@@ -288,7 +296,7 @@ class MotionPanel(QGroupBox):
             speed = self._jog_speed_spin.value()
             self._run_motion(lambda: self._service.move_by(distance, speed))
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"步进移动失败: {e}")
+            QMessageBox.warning(self, tr("common.error"), f"{tr('motion.step_failed')}: {e}")
 
     # ==================== 位置控制 ====================
 
@@ -340,8 +348,8 @@ class MotionPanel(QGroupBox):
 
         reply = QMessageBox.question(
             self,
-            "确认",
-            "确定要执行回零操作吗?",
+            tr("common.confirm"),
+            tr("motion.home_confirm"),
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
@@ -356,9 +364,9 @@ class MotionPanel(QGroupBox):
 
         try:
             self._service.set_home_position()
-            QMessageBox.information(self, "成功", "已将当前位置设为原点")
+            QMessageBox.information(self, tr("common.success"), tr("motion.set_home_success"))
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"设置原点失败: {e}")
+            QMessageBox.warning(self, tr("common.error"), f"{tr('motion.set_home_failed')}: {e}")
 
     def _fault_reset(self) -> None:
         """故障复位"""
@@ -367,9 +375,9 @@ class MotionPanel(QGroupBox):
 
         try:
             self._service.fault_reset()
-            QMessageBox.information(self, "成功", "故障已复位")
+            QMessageBox.information(self, tr("common.success"), tr("motion.fault_reset_success"))
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"故障复位失败: {e}")
+            QMessageBox.warning(self, tr("common.error"), f"{tr('motion.fault_reset_failed')}: {e}")
 
     # ==================== 使能控制 ====================
 
@@ -381,7 +389,7 @@ class MotionPanel(QGroupBox):
         try:
             self._service.enable()
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"使能失败: {e}")
+            QMessageBox.warning(self, tr("common.error"), f"{tr('motion.enable_failed')}: {e}")
 
     def disable_clicked(self) -> None:
         """禁用按钮点击"""
@@ -391,7 +399,7 @@ class MotionPanel(QGroupBox):
         try:
             self._service.disable()
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"禁用失败: {e}")
+            QMessageBox.warning(self, tr("common.error"), f"{tr('motion.disable_failed')}: {e}")
 
     def stop_clicked(self) -> None:
         """停止按钮点击"""
@@ -418,7 +426,7 @@ class MotionPanel(QGroupBox):
     def _run_motion(self, task: callable) -> None:
         """在后台线程运行运动任务"""
         if self._worker and self._worker.isRunning():
-            QMessageBox.warning(self, "警告", "上一个运动操作尚未完成")
+            QMessageBox.warning(self, tr("common.warning"), tr("motion.operation_in_progress"))
             return
 
         self._set_buttons_enabled(False)
@@ -438,7 +446,7 @@ class MotionPanel(QGroupBox):
         self.motion_finished.emit()
 
         if not success:
-            QMessageBox.warning(self, "运动失败", message)
+            QMessageBox.warning(self, tr("motion.motion_failed"), message)
 
     def _set_buttons_enabled(self, enabled: bool) -> None:
         """设置按钮启用状态"""
@@ -458,3 +466,40 @@ class MotionPanel(QGroupBox):
         self._jog_speed_spin.setValue(velocity)
         self._pos_speed_spin.setValue(velocity)
         logger.info(f"运动面板速度已更新: {velocity} mm/s")
+
+    def refresh_texts(self) -> None:
+        """刷新界面文本"""
+        # 标题
+        self.setTitle(tr("motion.title"))
+
+        # 使能/停止按钮
+        self._enable_btn.setText(tr("motion.enable"))
+        self._disable_btn.setText(tr("motion.disable"))
+        self._stop_btn.setText(tr("motion.stop"))
+        self._quick_stop_btn.setText(tr("motion.quick_stop"))
+
+        # 选项卡
+        self._tab_widget.setTabText(0, tr("motion.jog"))
+        self._tab_widget.setTabText(1, tr("motion.position"))
+        self._tab_widget.setTabText(2, tr("motion.home"))
+
+        # 点动控制页
+        self._jog_speed_label.setText(tr("motion.jog_speed"))
+        self._jog_neg_btn.setText(tr("motion.negative"))
+        self._jog_pos_btn.setText(tr("motion.positive"))
+        self._step_label.setText(tr("motion.step"))
+
+        # 位置控制页
+        self._target_pos_label.setText(tr("motion.target_pos"))
+        self._move_speed_label.setText(tr("motion.move_speed"))
+        self._move_abs_btn.setText(tr("motion.move_abs"))
+        self._move_rel_btn.setText(tr("motion.move_rel"))
+        self._quick_pos_label.setText(tr("motion.quick_pos"))
+        self._preset_btns["min"].setText(tr("motion.min"))
+        self._preset_btns["mid"].setText(tr("motion.mid"))
+        self._preset_btns["max"].setText(tr("motion.max"))
+
+        # 回零控制页
+        self._home_btn.setText(tr("motion.start_home"))
+        self._set_home_btn.setText(tr("motion.set_home"))
+        self._fault_reset_btn.setText(tr("motion.fault_reset"))

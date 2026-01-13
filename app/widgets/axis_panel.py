@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
 )
 
 from servo_service import AxisName, ServoService, get_axis_config
+from ..i18n import tr
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,9 @@ class AxisPanel(QGroupBox):
             service: 伺服服务实例
             parent: 父组件
         """
-        super().__init__("轴选择", parent)
+        super().__init__(tr("axis.title"), parent)
         self._service = service
+        self._axis_buttons = {}
         self._init_ui()
 
     def _init_ui(self) -> None:
@@ -59,14 +61,15 @@ class AxisPanel(QGroupBox):
 
         for axis in AxisName:
             config = get_axis_config(axis)
-            radio = QRadioButton(f"{axis.value} 轴")
+            radio = QRadioButton(tr(f"axis.{axis.value.lower()}"))
             radio.setToolTip(
-                f"型号: {config.model}\n"
-                f"功率: {config.motor_power}W\n"
-                f"行程: {config.stroke_min}-{config.stroke_max}mm"
+                f"{tr('axis.model')}: {config.model}\n"
+                f"{tr('axis.power')}: {config.motor_power}W\n"
+                f"{tr('axis.stroke')}: {config.stroke_min}-{config.stroke_max}mm"
             )
             self._axis_group.addButton(radio, axis.value.encode()[0])  # X=88, Y=89, Z=90
             axis_layout.addWidget(radio)
+            self._axis_buttons[axis] = radio
 
             # 默认选中 Z 轴
             if axis == AxisName.Z:
@@ -97,14 +100,14 @@ class AxisPanel(QGroupBox):
         """更新轴信息显示"""
         config = get_axis_config(axis)
         info_text = (
-            f"<b>{axis.value} 轴</b> | "
-            f"从站: {config.slave_id} | "
-            f"型号: {config.model} | "
-            f"行程: {config.stroke_min:.0f}-{config.stroke_max:.0f}mm | "
-            f"最大速度: {config.max_velocity:.0f}mm/s"
+            f"<b>{tr(f'axis.{axis.value.lower()}')}</b> | "
+            f"{tr('axis.slave')}: {config.slave_id} | "
+            f"{tr('axis.model')}: {config.model} | "
+            f"{tr('axis.stroke')}: {config.stroke_min:.0f}-{config.stroke_max:.0f}mm | "
+            f"{tr('axis.max_speed')}: {config.max_velocity:.0f}mm/s"
         )
         if config.has_brake:
-            info_text += " | <span style='color:#f0ad4e'>带抱闸</span>"
+            info_text += f" | <span style='color:#ffc107'>{tr('axis.with_brake')}</span>"
 
         self._info_label.setText(info_text)
 
@@ -119,3 +122,18 @@ class AxisPanel(QGroupBox):
                 button.setChecked(True)
                 self._on_axis_clicked(button)
                 break
+
+    def refresh_texts(self) -> None:
+        """刷新界面文本"""
+        self.setTitle(tr("axis.title"))
+
+        for axis, radio in self._axis_buttons.items():
+            config = get_axis_config(axis)
+            radio.setText(tr(f"axis.{axis.value.lower()}"))
+            radio.setToolTip(
+                f"{tr('axis.model')}: {config.model}\n"
+                f"{tr('axis.power')}: {config.motor_power}W\n"
+                f"{tr('axis.stroke')}: {config.stroke_min}-{config.stroke_max}mm"
+            )
+
+        self._update_info(self._service.current_axis)

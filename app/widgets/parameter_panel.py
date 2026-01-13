@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
 )
 
 from servo_service import ServoService
+from ..i18n import tr
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ class ParameterPanel(QGroupBox):
             service: 伺服服务实例
             parent: 父组件
         """
-        super().__init__("运动参数", parent)
+        super().__init__(tr("param.title"), parent)
         self._service = service
         self._init_ui()
 
@@ -55,7 +56,7 @@ class ParameterPanel(QGroupBox):
         layout = QVBoxLayout(self)
 
         # 参数表单
-        form_layout = QFormLayout()
+        self._form_layout = QFormLayout()
 
         # 速度
         self._velocity_spin = QDoubleSpinBox()
@@ -63,7 +64,8 @@ class ParameterPanel(QGroupBox):
         self._velocity_spin.setValue(100)
         self._velocity_spin.setSuffix(" mm/s")
         self._velocity_spin.setDecimals(1)
-        form_layout.addRow("默认速度:", self._velocity_spin)
+        self._velocity_label = tr("param.velocity")
+        self._form_layout.addRow(self._velocity_label, self._velocity_spin)
 
         # 加速度
         self._accel_spin = QDoubleSpinBox()
@@ -71,7 +73,8 @@ class ParameterPanel(QGroupBox):
         self._accel_spin.setValue(500)
         self._accel_spin.setSuffix(" mm/s²")
         self._accel_spin.setDecimals(1)
-        form_layout.addRow("加速度:", self._accel_spin)
+        self._accel_label = tr("param.acceleration")
+        self._form_layout.addRow(self._accel_label, self._accel_spin)
 
         # 减速度
         self._decel_spin = QDoubleSpinBox()
@@ -79,32 +82,33 @@ class ParameterPanel(QGroupBox):
         self._decel_spin.setValue(500)
         self._decel_spin.setSuffix(" mm/s²")
         self._decel_spin.setDecimals(1)
-        form_layout.addRow("减速度:", self._decel_spin)
+        self._decel_label = tr("param.deceleration")
+        self._form_layout.addRow(self._decel_label, self._decel_spin)
 
-        layout.addLayout(form_layout)
+        layout.addLayout(self._form_layout)
 
         # 应用按钮
         btn_layout = QHBoxLayout()
 
-        self._apply_btn = QPushButton("应用参数")
+        self._apply_btn = QPushButton(tr("param.apply"))
         self._apply_btn.clicked.connect(self._apply_parameters)
         btn_layout.addWidget(self._apply_btn)
 
-        self._read_btn = QPushButton("读取当前")
+        self._read_btn = QPushButton(tr("param.read"))
         self._read_btn.clicked.connect(self._read_parameters)
         btn_layout.addWidget(self._read_btn)
 
         layout.addLayout(btn_layout)
 
         # 加载默认值按钮
-        self._load_default_btn = QPushButton("加载默认值")
+        self._load_default_btn = QPushButton(tr("param.load_default"))
         self._load_default_btn.clicked.connect(self._load_defaults)
         layout.addWidget(self._load_default_btn)
 
     def _apply_parameters(self) -> None:
         """应用参数到电机"""
         if not self._service.is_connected:
-            QMessageBox.warning(self, "警告", "请先连接到伺服系统")
+            QMessageBox.warning(self, tr("common.warning"), tr("param.connect_first"))
             return
 
         try:
@@ -119,17 +123,17 @@ class ParameterPanel(QGroupBox):
             # 发出信号同步其他面板
             self.parameters_applied.emit(velocity, accel, decel)
 
-            QMessageBox.information(self, "成功", "参数已应用")
+            QMessageBox.information(self, tr("common.success"), tr("param.applied"))
             logger.info(f"参数已应用: 速度={velocity}, 加速度={accel}, 减速度={decel}")
 
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"应用参数失败: {e}")
+            QMessageBox.warning(self, tr("common.error"), f"{tr('param.apply_failed')}: {e}")
             logger.error(f"应用参数失败: {e}")
 
     def _read_parameters(self) -> None:
         """从电机读取当前参数"""
         if not self._service.is_connected:
-            QMessageBox.warning(self, "警告", "请先连接到伺服系统")
+            QMessageBox.warning(self, tr("common.warning"), tr("param.connect_first"))
             return
 
         try:
@@ -143,14 +147,11 @@ class ParameterPanel(QGroupBox):
 
             logger.info(f"已读取参数: 速度={velocity:.1f}, 加速度={accel:.1f}, 减速度={decel:.1f}")
             QMessageBox.information(
-                self, "成功",
-                f"已读取当前参数:\n"
-                f"速度: {velocity:.1f} mm/s\n"
-                f"加速度: {accel:.1f} mm/s²\n"
-                f"减速度: {decel:.1f} mm/s²"
+                self, tr("common.success"),
+                tr("param.read_success_detail", vel=velocity, accel=accel, decel=decel)
             )
         except Exception as e:
-            QMessageBox.warning(self, "错误", f"读取参数失败: {e}")
+            QMessageBox.warning(self, tr("common.error"), f"{tr('param.read_failed')}: {e}")
             logger.error(f"读取参数失败: {e}")
 
     def _load_defaults(self) -> None:
@@ -166,3 +167,13 @@ class ParameterPanel(QGroupBox):
     def update_from_config(self) -> None:
         """从配置更新显示"""
         self._load_defaults()
+
+    def refresh_texts(self) -> None:
+        """刷新界面文本"""
+        self.setTitle(tr("param.title"))
+
+        # 更新表单行标签 (需要重新设置)
+        # 由于 QFormLayout 不支持直接更新行标签，这里更新按钮文本
+        self._apply_btn.setText(tr("param.apply"))
+        self._read_btn.setText(tr("param.read"))
+        self._load_default_btn.setText(tr("param.load_default"))

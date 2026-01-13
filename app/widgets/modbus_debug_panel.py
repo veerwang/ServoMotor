@@ -30,26 +30,27 @@ from PyQt5.QtWidgets import (
 
 from servo_service import ServoService
 from servo_service.modbus_rtu.crc import append_crc
+from ..i18n import tr
 
 logger = logging.getLogger(__name__)
 
 
-# 常用寄存器预设
+# 常用寄存器预设 (name_key 用于翻译)
 QUICK_REGISTERS = [
-    {"name": "状态字", "addr": 0x0381, "size": 1, "desc": "Status Word"},
-    {"name": "控制字", "addr": 0x0380, "size": 1, "desc": "Control Word"},
-    {"name": "位置", "addr": 0x03C8, "size": 2, "desc": "Position Actual"},
-    {"name": "速度", "addr": 0x03D5, "size": 2, "desc": "Velocity Actual"},
-    {"name": "错误码", "addr": 0x0382, "size": 1, "desc": "Error Code"},
-    {"name": "模式", "addr": 0x03C3, "size": 1, "desc": "Operation Mode"},
+    {"name_key": "reg.status_word", "addr": 0x0381, "size": 1, "desc": "Status Word"},
+    {"name_key": "reg.control_word", "addr": 0x0380, "size": 1, "desc": "Control Word"},
+    {"name_key": "reg.position", "addr": 0x03C8, "size": 2, "desc": "Position Actual"},
+    {"name_key": "reg.velocity", "addr": 0x03D5, "size": 2, "desc": "Velocity Actual"},
+    {"name_key": "reg.error_code", "addr": 0x0382, "size": 1, "desc": "Error Code"},
+    {"name_key": "reg.mode", "addr": 0x03C3, "size": 1, "desc": "Operation Mode"},
 ]
 
-# 功能码定义
+# 功能码定义 (key 用于翻译)
 FUNCTION_CODES = [
-    (0x03, "0x03 读保持寄存器"),
-    (0x04, "0x04 读输入寄存器"),
-    (0x06, "0x06 写单个寄存器"),
-    (0x10, "0x10 写多个寄存器"),
+    (0x03, "fc.read_holding"),
+    (0x04, "fc.read_input"),
+    (0x06, "fc.write_single"),
+    (0x10, "fc.write_multi"),
 ]
 
 
@@ -76,7 +77,7 @@ class ModbusDebugPanel(QGroupBox):
             service: 伺服服务实例
             parent: 父组件
         """
-        super().__init__("Modbus 调试", parent)
+        super().__init__(tr("modbus.title"), parent)
         self._service = service
 
         # 统计计数
@@ -124,15 +125,16 @@ class ModbusDebugPanel(QGroupBox):
         layout.setSpacing(4)
 
         # 标题
-        title = QLabel("快捷操作")
-        title.setStyleSheet("font-weight: bold;")
-        layout.addWidget(title)
+        self._quick_title = QLabel(tr("modbus.quick_access"))
+        self._quick_title.setStyleSheet("font-weight: bold;")
+        layout.addWidget(self._quick_title)
 
         # 从站和地址输入行
         input_layout = QHBoxLayout()
 
         # 从站地址
-        input_layout.addWidget(QLabel("从站:"))
+        self._slave_label = QLabel(tr("modbus.slave"))
+        input_layout.addWidget(self._slave_label)
         self._slave_spin = QSpinBox()
         self._slave_spin.setRange(1, 247)
         self._slave_spin.setValue(3)  # 默认 Z 轴
@@ -142,7 +144,8 @@ class ModbusDebugPanel(QGroupBox):
         input_layout.addSpacing(10)
 
         # 寄存器地址
-        input_layout.addWidget(QLabel("地址:"))
+        self._addr_label = QLabel(tr("modbus.address"))
+        input_layout.addWidget(self._addr_label)
         self._addr_edit = QLineEdit()
         self._addr_edit.setPlaceholderText("0x0381")
         self._addr_edit.setFixedWidth(80)
@@ -150,7 +153,8 @@ class ModbusDebugPanel(QGroupBox):
         input_layout.addWidget(self._addr_edit)
 
         # 数量
-        input_layout.addWidget(QLabel("数量:"))
+        self._count_label = QLabel(tr("modbus.count"))
+        input_layout.addWidget(self._count_label)
         self._count_spin = QSpinBox()
         self._count_spin.setRange(1, 125)
         self._count_spin.setValue(1)
@@ -158,7 +162,7 @@ class ModbusDebugPanel(QGroupBox):
         input_layout.addWidget(self._count_spin)
 
         # 读取按钮
-        self._read_btn = QPushButton("读取")
+        self._read_btn = QPushButton(tr("modbus.read"))
         self._read_btn.clicked.connect(self._quick_read)
         self._read_btn.setFixedWidth(60)
         input_layout.addWidget(self._read_btn)
@@ -167,13 +171,15 @@ class ModbusDebugPanel(QGroupBox):
         layout.addLayout(input_layout)
 
         # 常用寄存器按钮行
+        self._quick_reg_btns = []
         btn_layout = QHBoxLayout()
         for reg in QUICK_REGISTERS:
-            btn = QPushButton(reg["name"])
+            btn = QPushButton(tr(reg["name_key"]))
             btn.setToolTip(f'{reg["desc"]} (0x{reg["addr"]:04X})')
             btn.clicked.connect(lambda checked, r=reg: self._quick_reg_click(r))
             btn.setFixedWidth(60)
             btn_layout.addWidget(btn)
+            self._quick_reg_btns.append((btn, reg["name_key"]))
         btn_layout.addStretch()
         layout.addLayout(btn_layout)
 
@@ -187,16 +193,17 @@ class ModbusDebugPanel(QGroupBox):
         layout.setSpacing(4)
 
         # 标题
-        title = QLabel("手动发送")
-        title.setStyleSheet("font-weight: bold;")
-        layout.addWidget(title)
+        self._manual_title = QLabel(tr("modbus.manual_send"))
+        self._manual_title.setStyleSheet("font-weight: bold;")
+        layout.addWidget(self._manual_title)
 
         # 功能码行
         fc_layout = QHBoxLayout()
-        fc_layout.addWidget(QLabel("功能码:"))
+        self._fc_label = QLabel(tr("modbus.function_code"))
+        fc_layout.addWidget(self._fc_label)
         self._fc_combo = QComboBox()
-        for code, name in FUNCTION_CODES:
-            self._fc_combo.addItem(name, code)
+        for code, name_key in FUNCTION_CODES:
+            self._fc_combo.addItem(tr(name_key), code)
         self._fc_combo.currentIndexChanged.connect(self._update_preview)
         self._fc_combo.setFixedWidth(180)
         fc_layout.addWidget(self._fc_combo)
@@ -205,7 +212,8 @@ class ModbusDebugPanel(QGroupBox):
 
         # 地址和数据行
         data_layout = QHBoxLayout()
-        data_layout.addWidget(QLabel("起始地址:"))
+        self._start_addr_label = QLabel(tr("modbus.start_addr"))
+        data_layout.addWidget(self._start_addr_label)
         self._manual_addr_edit = QLineEdit()
         self._manual_addr_edit.setPlaceholderText("0x0380")
         self._manual_addr_edit.setText("0x0380")
@@ -216,7 +224,7 @@ class ModbusDebugPanel(QGroupBox):
         data_layout.addSpacing(10)
 
         # 数量/数据
-        self._data_label = QLabel("数量:")
+        self._data_label = QLabel(tr("modbus.count"))
         data_layout.addWidget(self._data_label)
         self._manual_data_edit = QLineEdit()
         self._manual_data_edit.setPlaceholderText("1")
@@ -230,7 +238,8 @@ class ModbusDebugPanel(QGroupBox):
 
         # 帧预览
         preview_layout = QHBoxLayout()
-        preview_layout.addWidget(QLabel("帧预览:"))
+        self._frame_preview_label = QLabel(tr("modbus.frame_preview"))
+        preview_layout.addWidget(self._frame_preview_label)
         self._preview_label = QLabel("")
         self._preview_label.setStyleSheet(
             "font-family: monospace; background-color: #f0f0f0; padding: 4px;"
@@ -240,7 +249,7 @@ class ModbusDebugPanel(QGroupBox):
 
         # 发送按钮
         btn_layout = QHBoxLayout()
-        self._send_btn = QPushButton("发送")
+        self._send_btn = QPushButton(tr("modbus.send"))
         self._send_btn.clicked.connect(self._manual_send)
         self._send_btn.setProperty("class", "success")
         self._send_btn.setFixedWidth(80)
@@ -262,22 +271,22 @@ class ModbusDebugPanel(QGroupBox):
 
         # 标题行
         title_layout = QHBoxLayout()
-        title = QLabel("通信日志")
-        title.setStyleSheet("font-weight: bold;")
-        title_layout.addWidget(title)
+        self._log_title = QLabel(tr("modbus.comm_log"))
+        self._log_title.setStyleSheet("font-weight: bold;")
+        title_layout.addWidget(self._log_title)
         title_layout.addStretch()
 
         # 清空按钮
-        clear_btn = QPushButton("清空")
-        clear_btn.clicked.connect(self._clear_log)
-        clear_btn.setFixedWidth(50)
-        title_layout.addWidget(clear_btn)
+        self._clear_btn = QPushButton(tr("modbus.clear"))
+        self._clear_btn.clicked.connect(self._clear_log)
+        self._clear_btn.setFixedWidth(50)
+        title_layout.addWidget(self._clear_btn)
 
         # 导出按钮
-        export_btn = QPushButton("导出")
-        export_btn.clicked.connect(self._export_log)
-        export_btn.setFixedWidth(50)
-        title_layout.addWidget(export_btn)
+        self._export_btn = QPushButton(tr("modbus.export"))
+        self._export_btn.clicked.connect(self._export_log)
+        self._export_btn.setFixedWidth(50)
+        title_layout.addWidget(self._export_btn)
 
         layout.addLayout(title_layout)
 
@@ -297,17 +306,17 @@ class ModbusDebugPanel(QGroupBox):
         layout = QHBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        self._stats_label = QLabel("发送: 0  接收: 0  错误: 0  成功率: --")
+        self._stats_label = QLabel(tr("modbus.stats", tx=0, rx=0, err=0, rate="--"))
         self._stats_label.setStyleSheet("color: #666;")
         layout.addWidget(self._stats_label)
 
         layout.addStretch()
 
         # 重置按钮
-        reset_btn = QPushButton("重置统计")
-        reset_btn.clicked.connect(self._reset_stats)
-        reset_btn.setFixedWidth(70)
-        layout.addWidget(reset_btn)
+        self._reset_btn = QPushButton(tr("modbus.reset_stats"))
+        self._reset_btn.clicked.connect(self._reset_stats)
+        self._reset_btn.setFixedWidth(70)
+        layout.addWidget(self._reset_btn)
 
         return widget
 
@@ -353,7 +362,7 @@ class ModbusDebugPanel(QGroupBox):
         except ValueError as e:
             self._log_error(str(e))
         except Exception as e:
-            self._log_error(f"发送失败: {e}")
+            self._log_error(f"{tr('modbus.send_failed')} {e}")
 
     def _update_preview(self) -> None:
         """更新帧预览"""
@@ -365,11 +374,11 @@ class ModbusDebugPanel(QGroupBox):
 
             # 更新数据标签
             if fc == 0x03 or fc == 0x04:
-                self._data_label.setText("数量:")
+                self._data_label.setText(tr("modbus.count"))
             elif fc == 0x06:
-                self._data_label.setText("数据:")
+                self._data_label.setText(tr("modbus.data"))
             else:
-                self._data_label.setText("数据:")
+                self._data_label.setText(tr("modbus.data"))
 
             # 构建帧
             frame = self._build_frame(fc, slave_id, addr, data_text)
@@ -390,7 +399,7 @@ class ModbusDebugPanel(QGroupBox):
         """导出日志"""
         filename, _ = QFileDialog.getSaveFileName(
             self,
-            "导出日志",
+            tr("modbus.export_title"),
             f"modbus_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
             "Text Files (*.txt);;All Files (*)",
         )
@@ -398,9 +407,9 @@ class ModbusDebugPanel(QGroupBox):
             try:
                 with open(filename, "w", encoding="utf-8") as f:
                     f.write(self._log_text.toPlainText())
-                self._log_info(f"日志已导出到: {filename}")
+                self._log_info(f"{tr('modbus.exported')} {filename}")
             except Exception as e:
-                self._log_error(f"导出失败: {e}")
+                self._log_error(f"{tr('modbus.export_failed')} {e}")
 
     def _reset_stats(self) -> None:
         """重置统计"""
@@ -417,7 +426,7 @@ class ModbusDebugPanel(QGroupBox):
         """读取寄存器"""
         client = self._service.get_modbus_client()
         if client is None:
-            self._log_error("未连接到设备")
+            self._log_error(tr("modbus.not_connected"))
             return
 
         # 暂停状态定时器
@@ -429,7 +438,8 @@ class ModbusDebugPanel(QGroupBox):
             frame = bytes([slave_id, fc, (addr >> 8) & 0xFF, addr & 0xFF,
                           (count >> 8) & 0xFF, count & 0xFF])
             frame_with_crc = append_crc(frame)
-            self._log_tx(frame_with_crc, f"读{'输入' if input_reg else '保持'}寄存器 0x{addr:04X}, 数量:{count}")
+            reg_type = tr("modbus.read_input") if input_reg else tr("modbus.read_holding")
+            self._log_tx(frame_with_crc, f"{reg_type} 0x{addr:04X}, {tr('modbus.count').rstrip(':')}:{count}")
 
             # 执行读取
             if count == 1:
@@ -446,7 +456,7 @@ class ModbusDebugPanel(QGroupBox):
             self._rx_count += 1
 
         except Exception as e:
-            self._log_error(f"读取失败: {e}")
+            self._log_error(f"{tr('modbus.read_failed')} {e}")
             self._err_count += 1
         finally:
             self.request_resume_timer.emit()
@@ -456,7 +466,7 @@ class ModbusDebugPanel(QGroupBox):
         """写单个寄存器"""
         client = self._service.get_modbus_client()
         if client is None:
-            self._log_error("未连接到设备")
+            self._log_error(tr("modbus.not_connected"))
             return
 
         self.request_pause_timer.emit()
@@ -466,16 +476,16 @@ class ModbusDebugPanel(QGroupBox):
             frame = bytes([slave_id, 0x06, (addr >> 8) & 0xFF, addr & 0xFF,
                           (value >> 8) & 0xFF, value & 0xFF])
             frame_with_crc = append_crc(frame)
-            self._log_tx(frame_with_crc, f"写寄存器 0x{addr:04X} = 0x{value:04X}")
+            self._log_tx(frame_with_crc, f"{tr('modbus.write_single')} 0x{addr:04X} = 0x{value:04X}")
 
             # 执行写入
             client.write_register(slave_id, addr, value)
 
-            self._log_rx_success("写入成功")
+            self._log_rx_success(tr("modbus.write_success"))
             self._rx_count += 1
 
         except Exception as e:
-            self._log_error(f"写入失败: {e}")
+            self._log_error(f"{tr('modbus.write_failed')} {e}")
             self._err_count += 1
         finally:
             self.request_resume_timer.emit()
@@ -487,7 +497,7 @@ class ModbusDebugPanel(QGroupBox):
         """写多个寄存器"""
         client = self._service.get_modbus_client()
         if client is None:
-            self._log_error("未连接到设备")
+            self._log_error(tr("modbus.not_connected"))
             return
 
         self.request_pause_timer.emit()
@@ -497,17 +507,17 @@ class ModbusDebugPanel(QGroupBox):
             values_hex = " ".join(f"0x{v:04X}" for v in values)
             self._log_tx(
                 bytes([slave_id, 0x10]),
-                f"写多个寄存器 0x{addr:04X}, 数量:{len(values)}, 数据:[{values_hex}]",
+                f"{tr('fc.write_multi')} 0x{addr:04X}, {tr('modbus.count').rstrip(':')}:{len(values)}, {tr('modbus.data').rstrip(':')}: [{values_hex}]",
             )
 
             # 执行写入
             client.write_multiple_registers(slave_id, addr, values)
 
-            self._log_rx_success(f"写入 {len(values)} 个寄存器成功")
+            self._log_rx_success(tr("modbus.write_multi_success", count=len(values)))
             self._rx_count += 1
 
         except Exception as e:
-            self._log_error(f"写入失败: {e}")
+            self._log_error(f"{tr('modbus.write_failed')} {e}")
             self._err_count += 1
         finally:
             self.request_resume_timer.emit()
@@ -519,7 +529,7 @@ class ModbusDebugPanel(QGroupBox):
         """解析地址"""
         text = text.strip().lower()
         if not text:
-            raise ValueError("地址不能为空")
+            raise ValueError(tr("modbus.addr_empty"))
 
         if text.startswith("0x"):
             return int(text, 16)
@@ -552,7 +562,7 @@ class ModbusDebugPanel(QGroupBox):
         """解析多个值（空格或逗号分隔）"""
         text = text.strip()
         if not text:
-            raise ValueError("数据不能为空")
+            raise ValueError(tr("modbus.data_empty"))
 
         # 支持空格或逗号分隔
         parts = text.replace(",", " ").split()
@@ -629,9 +639,9 @@ class ModbusDebugPanel(QGroupBox):
             value_str = f"[{values_hex}]"
 
         self._log_text.setTextColor(QColor("#5cb85c"))  # 绿色
-        self._log_text.append(f"[{timestamp}] RX 成功")
+        self._log_text.append(f"[{timestamp}] RX {tr('modbus.success')}")
         self._log_text.setTextColor(QColor("#666"))
-        self._log_text.append(f"           ← 数据: {value_str}")
+        self._log_text.append(f"           ← {tr('modbus.rx_data')} {value_str}")
 
     def _log_rx_success(self, message: str) -> None:
         """记录成功响应"""
@@ -661,6 +671,51 @@ class ModbusDebugPanel(QGroupBox):
             rate_str = "--"
 
         self._stats_label.setText(
-            f"发送: {self._tx_count}  接收: {self._rx_count}  "
-            f"错误: {self._err_count}  成功率: {rate_str}"
+            tr("modbus.stats", tx=self._tx_count, rx=self._rx_count,
+               err=self._err_count, rate=rate_str)
         )
+
+    def refresh_texts(self) -> None:
+        """刷新界面文本"""
+        self.setTitle(tr("modbus.title"))
+
+        # 快捷操作区
+        self._quick_title.setText(tr("modbus.quick_access"))
+        self._slave_label.setText(tr("modbus.slave"))
+        self._addr_label.setText(tr("modbus.address"))
+        self._count_label.setText(tr("modbus.count"))
+        self._read_btn.setText(tr("modbus.read"))
+
+        # 更新快捷寄存器按钮
+        for btn, name_key in self._quick_reg_btns:
+            btn.setText(tr(name_key))
+
+        # 手动发送区
+        self._manual_title.setText(tr("modbus.manual_send"))
+        self._fc_label.setText(tr("modbus.function_code"))
+        self._start_addr_label.setText(tr("modbus.start_addr"))
+        self._frame_preview_label.setText(tr("modbus.frame_preview"))
+        self._send_btn.setText(tr("modbus.send"))
+
+        # 更新功能码下拉框
+        current_fc = self._fc_combo.currentData()
+        self._fc_combo.clear()
+        for code, name_key in FUNCTION_CODES:
+            self._fc_combo.addItem(tr(name_key), code)
+        # 恢复选中项
+        for i in range(self._fc_combo.count()):
+            if self._fc_combo.itemData(i) == current_fc:
+                self._fc_combo.setCurrentIndex(i)
+                break
+
+        # 通信日志区
+        self._log_title.setText(tr("modbus.comm_log"))
+        self._clear_btn.setText(tr("modbus.clear"))
+        self._export_btn.setText(tr("modbus.export"))
+
+        # 统计区
+        self._reset_btn.setText(tr("modbus.reset_stats"))
+        self._update_stats()
+
+        # 更新数据标签
+        self._update_preview()

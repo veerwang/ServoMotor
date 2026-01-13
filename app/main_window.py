@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import (
 
 from servo_service import AxisName, ServoService
 
+from .i18n import Language, get_language, load_language, register_language_callback, set_language, tr
 from .widgets.connection_panel import ConnectionPanel
 from .widgets.axis_panel import AxisPanel
 from .widgets.status_panel import StatusPanel
@@ -51,6 +52,9 @@ class MainWindow(QMainWindow):
         """初始化主窗口"""
         super().__init__(parent)
 
+        # 加载保存的语言设置
+        load_language()
+
         # 创建服务实例
         self._service = ServoService()
 
@@ -72,7 +76,7 @@ class MainWindow(QMainWindow):
 
     def _init_ui(self) -> None:
         """初始化用户界面"""
-        self.setWindowTitle("NiMotion 伺服电机控制系统")
+        self.setWindowTitle(tr("app.title"))
         self.setMinimumSize(1024, 700)
         self.resize(1280, 800)
 
@@ -163,21 +167,21 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
 
         # 文件菜单
-        file_menu = menubar.addMenu("文件(&F)")
+        self._file_menu = menubar.addMenu(tr("menu.file"))
 
-        exit_action = QAction("退出(&X)", self)
-        exit_action.setShortcut("Ctrl+Q")
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
+        self._exit_action = QAction(tr("menu.exit"), self)
+        self._exit_action.setShortcut("Ctrl+Q")
+        self._exit_action.triggered.connect(self.close)
+        self._file_menu.addAction(self._exit_action)
 
         # 视图菜单
-        view_menu = menubar.addMenu("视图(&V)")
+        self._view_menu = menubar.addMenu(tr("menu.view"))
 
         # 创建视图切换动作组（单选）
         view_group = QActionGroup(self)
         view_group.setExclusive(True)
 
-        self._motor_control_action = QAction("电机控制(&M)", self)
+        self._motor_control_action = QAction(tr("menu.motor_control"), self)
         self._motor_control_action.setCheckable(True)
         self._motor_control_action.setChecked(True)
         self._motor_control_action.setShortcut("Ctrl+1")
@@ -185,74 +189,94 @@ class MainWindow(QMainWindow):
             lambda: self._switch_view(VIEW_MOTOR_CONTROL)
         )
         view_group.addAction(self._motor_control_action)
-        view_menu.addAction(self._motor_control_action)
+        self._view_menu.addAction(self._motor_control_action)
 
-        self._modbus_debug_action = QAction("Modbus 调试(&D)", self)
+        self._modbus_debug_action = QAction(tr("menu.modbus_debug"), self)
         self._modbus_debug_action.setCheckable(True)
         self._modbus_debug_action.setShortcut("Ctrl+2")
         self._modbus_debug_action.triggered.connect(
             lambda: self._switch_view(VIEW_MODBUS_DEBUG)
         )
         view_group.addAction(self._modbus_debug_action)
-        view_menu.addAction(self._modbus_debug_action)
+        self._view_menu.addAction(self._modbus_debug_action)
 
         # 连接菜单
-        connect_menu = menubar.addMenu("连接(&C)")
+        self._connect_menu = menubar.addMenu(tr("menu.connect"))
 
-        self._connect_action = QAction("连接(&C)", self)
+        self._connect_action = QAction(tr("menu.connect_action"), self)
         self._connect_action.setShortcut("Ctrl+O")
         self._connect_action.triggered.connect(self._on_connect)
-        connect_menu.addAction(self._connect_action)
+        self._connect_menu.addAction(self._connect_action)
 
-        self._disconnect_action = QAction("断开(&D)", self)
+        self._disconnect_action = QAction(tr("menu.disconnect"), self)
         self._disconnect_action.setShortcut("Ctrl+D")
         self._disconnect_action.triggered.connect(self._on_disconnect)
         self._disconnect_action.setEnabled(False)
-        connect_menu.addAction(self._disconnect_action)
+        self._connect_menu.addAction(self._disconnect_action)
 
         # 控制菜单
-        control_menu = menubar.addMenu("控制(&O)")
+        self._control_menu = menubar.addMenu(tr("menu.control"))
 
-        enable_action = QAction("使能电机(&E)", self)
-        enable_action.setShortcut("Ctrl+E")
-        enable_action.triggered.connect(self._on_enable)
-        control_menu.addAction(enable_action)
+        self._enable_action = QAction(tr("menu.enable"), self)
+        self._enable_action.setShortcut("Ctrl+E")
+        self._enable_action.triggered.connect(self._on_enable)
+        self._control_menu.addAction(self._enable_action)
 
-        disable_action = QAction("禁用电机(&D)", self)
-        disable_action.triggered.connect(self._on_disable)
-        control_menu.addAction(disable_action)
+        self._disable_action = QAction(tr("menu.disable"), self)
+        self._disable_action.triggered.connect(self._on_disable)
+        self._control_menu.addAction(self._disable_action)
 
-        control_menu.addSeparator()
+        self._control_menu.addSeparator()
 
-        stop_action = QAction("停止(&S)", self)
-        stop_action.setShortcut("Space")
-        stop_action.triggered.connect(self._on_stop)
-        control_menu.addAction(stop_action)
+        self._stop_action = QAction(tr("menu.stop"), self)
+        self._stop_action.setShortcut("Space")
+        self._stop_action.triggered.connect(self._on_stop)
+        self._control_menu.addAction(self._stop_action)
 
-        quick_stop_action = QAction("快速停止(&Q)", self)
-        quick_stop_action.setShortcut("Escape")
-        quick_stop_action.triggered.connect(self._on_quick_stop)
-        control_menu.addAction(quick_stop_action)
+        self._quick_stop_action = QAction(tr("menu.quick_stop"), self)
+        self._quick_stop_action.setShortcut("Escape")
+        self._quick_stop_action.triggered.connect(self._on_quick_stop)
+        self._control_menu.addAction(self._quick_stop_action)
 
-        control_menu.addSeparator()
+        self._control_menu.addSeparator()
 
-        home_action = QAction("回零(&H)", self)
-        home_action.setShortcut("Ctrl+H")
-        home_action.triggered.connect(self._on_home)
-        control_menu.addAction(home_action)
+        self._home_action = QAction(tr("menu.home"), self)
+        self._home_action.setShortcut("Ctrl+H")
+        self._home_action.triggered.connect(self._on_home)
+        self._control_menu.addAction(self._home_action)
+
+        # 语言菜单
+        self._lang_menu = menubar.addMenu(tr("menu.language"))
+
+        lang_group = QActionGroup(self)
+        lang_group.setExclusive(True)
+
+        self._chinese_action = QAction(tr("menu.chinese"), self)
+        self._chinese_action.setCheckable(True)
+        self._chinese_action.setChecked(get_language() == Language.CHINESE)
+        self._chinese_action.triggered.connect(lambda: self._change_language(Language.CHINESE))
+        lang_group.addAction(self._chinese_action)
+        self._lang_menu.addAction(self._chinese_action)
+
+        self._english_action = QAction(tr("menu.english"), self)
+        self._english_action.setCheckable(True)
+        self._english_action.setChecked(get_language() == Language.ENGLISH)
+        self._english_action.triggered.connect(lambda: self._change_language(Language.ENGLISH))
+        lang_group.addAction(self._english_action)
+        self._lang_menu.addAction(self._english_action)
 
         # 帮助菜单
-        help_menu = menubar.addMenu("帮助(&H)")
+        self._help_menu = menubar.addMenu(tr("menu.help"))
 
-        about_action = QAction("关于(&A)", self)
-        about_action.triggered.connect(self._on_about)
-        help_menu.addAction(about_action)
+        self._about_action = QAction(tr("menu.about"), self)
+        self._about_action.triggered.connect(self._on_about)
+        self._help_menu.addAction(self._about_action)
 
     def _init_statusbar(self) -> None:
         """初始化状态栏"""
         self._statusbar = QStatusBar()
         self.setStatusBar(self._statusbar)
-        self._statusbar.showMessage("就绪 - 电机控制视图")
+        self._update_statusbar_message()
 
     def _connect_signals(self) -> None:
         """连接信号"""
@@ -273,6 +297,9 @@ class MainWindow(QMainWindow):
         # Modbus 调试面板信号
         self._modbus_debug_panel.request_pause_timer.connect(self.pause_status_timer)
         self._modbus_debug_panel.request_resume_timer.connect(self.resume_status_timer)
+
+        # 注册语言变更回调
+        register_language_callback(self._on_language_changed)
 
     def _load_styles(self) -> None:
         """加载样式表 - 工业风格黑黄配色"""
@@ -648,19 +675,10 @@ class MainWindow(QMainWindow):
         """切换视图"""
         self._current_view = view_index
         self._view_stack.setCurrentIndex(view_index)
+        self._update_statusbar_message()
 
-        # 更新状态栏
-        if view_index == VIEW_MOTOR_CONTROL:
-            view_name = "电机控制视图"
-        else:
-            view_name = "Modbus 调试视图"
-
-        if self._service.is_connected:
-            self._statusbar.showMessage(f"已连接 - {view_name}")
-        else:
-            self._statusbar.showMessage(f"就绪 - {view_name}")
-
-        logger.info(f"切换到{view_name}")
+        view_name = tr("status.view_motor") if view_index == VIEW_MOTOR_CONTROL else tr("status.view_modbus")
+        logger.info(f"{tr('common.switch_to')} {view_name}")
 
     # ==================== 事件处理 ====================
 
@@ -670,8 +688,7 @@ class MainWindow(QMainWindow):
         self._disconnect_action.setEnabled(True)
 
         # 更新状态栏
-        view_name = "电机控制视图" if self._current_view == VIEW_MOTOR_CONTROL else "Modbus 调试视图"
-        self._statusbar.showMessage(f"已连接 - {view_name}")
+        self._update_statusbar_message()
 
         # 启动状态更新
         self._status_timer.start(100)  # 100ms 刷新
@@ -685,8 +702,7 @@ class MainWindow(QMainWindow):
         self._disconnect_action.setEnabled(False)
 
         # 更新状态栏
-        view_name = "电机控制视图" if self._current_view == VIEW_MOTOR_CONTROL else "Modbus 调试视图"
-        self._statusbar.showMessage(f"已断开 - {view_name}")
+        self._update_statusbar_message()
 
         # 停止状态更新
         self._status_timer.stop()
@@ -696,7 +712,8 @@ class MainWindow(QMainWindow):
 
     def _on_axis_changed(self, axis: AxisName) -> None:
         """轴切换"""
-        self._statusbar.showMessage(f"切换到 {axis.value} 轴")
+        axis_name = tr(f"axis.{axis.value.lower()}")
+        self._statusbar.showMessage(f"{tr('common.switch_to')} {axis_name}")
         self._update_status()
 
     def _on_parameters_applied(
@@ -738,12 +755,67 @@ class MainWindow(QMainWindow):
         """关于对话框"""
         QMessageBox.about(
             self,
-            "关于",
-            "<h3>NiMotion 伺服电机控制系统</h3>"
-            "<p>版本: 0.1.0</p>"
-            "<p>基于 PyQt5 和 Modbus RTU 协议</p>"
-            "<p>支持 XYG321-A 三轴平台</p>",
+            tr("about.title"),
+            tr("about.content"),
         )
+
+    def _change_language(self, lang: Language) -> None:
+        """切换语言"""
+        set_language(lang)
+
+    def _on_language_changed(self) -> None:
+        """语言变更回调"""
+        self._refresh_ui_texts()
+
+    def _refresh_ui_texts(self) -> None:
+        """刷新所有 UI 文本"""
+        # 窗口标题
+        self.setWindowTitle(tr("app.title"))
+
+        # 菜单
+        self._file_menu.setTitle(tr("menu.file"))
+        self._exit_action.setText(tr("menu.exit"))
+
+        self._view_menu.setTitle(tr("menu.view"))
+        self._motor_control_action.setText(tr("menu.motor_control"))
+        self._modbus_debug_action.setText(tr("menu.modbus_debug"))
+
+        self._connect_menu.setTitle(tr("menu.connect"))
+        self._connect_action.setText(tr("menu.connect_action"))
+        self._disconnect_action.setText(tr("menu.disconnect"))
+
+        self._control_menu.setTitle(tr("menu.control"))
+        self._enable_action.setText(tr("menu.enable"))
+        self._disable_action.setText(tr("menu.disable"))
+        self._stop_action.setText(tr("menu.stop"))
+        self._quick_stop_action.setText(tr("menu.quick_stop"))
+        self._home_action.setText(tr("menu.home"))
+
+        self._lang_menu.setTitle(tr("menu.language"))
+        self._chinese_action.setText(tr("menu.chinese"))
+        self._english_action.setText(tr("menu.english"))
+
+        self._help_menu.setTitle(tr("menu.help"))
+        self._about_action.setText(tr("menu.about"))
+
+        # 状态栏
+        self._update_statusbar_message()
+
+        # 刷新各面板
+        self._connection_panel.refresh_texts()
+        self._axis_panel.refresh_texts()
+        self._status_panel.refresh_texts()
+        self._motion_panel.refresh_texts()
+        self._parameter_panel.refresh_texts()
+        self._modbus_debug_panel.refresh_texts()
+
+    def _update_statusbar_message(self) -> None:
+        """更新状态栏消息"""
+        view_name = tr("status.view_motor") if self._current_view == VIEW_MOTOR_CONTROL else tr("status.view_modbus")
+        if self._service.is_connected:
+            self._statusbar.showMessage(f"{tr('status.connected')} - {view_name}")
+        else:
+            self._statusbar.showMessage(f"{tr('status.ready')} - {view_name}")
 
     def _update_status(self) -> None:
         """更新状态显示"""

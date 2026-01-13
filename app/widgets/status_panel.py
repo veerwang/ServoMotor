@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import (
 )
 
 from servo_service import DriveState, ServoService
+from ..i18n import tr
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class StatusPanel(QGroupBox):
             service: 伺服服务实例
             parent: 父组件
         """
-        super().__init__("状态监控", parent)
+        super().__init__(tr("status_panel.title"), parent)
         self._service = service
         self._init_ui()
 
@@ -56,7 +57,8 @@ class StatusPanel(QGroupBox):
         pos_vel_layout = QGridLayout()
 
         # 位置
-        pos_vel_layout.addWidget(QLabel("位置:"), 0, 0)
+        self._pos_title = QLabel(tr("status_panel.position"))
+        pos_vel_layout.addWidget(self._pos_title, 0, 0)
         self._position_label = QLabel("0.000")
         self._position_label.setProperty("class", "value")
         self._position_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -64,7 +66,8 @@ class StatusPanel(QGroupBox):
         pos_vel_layout.addWidget(QLabel("mm"), 0, 2)
 
         # 速度
-        pos_vel_layout.addWidget(QLabel("速度:"), 1, 0)
+        self._vel_title = QLabel(tr("status_panel.velocity"))
+        pos_vel_layout.addWidget(self._vel_title, 1, 0)
         self._velocity_label = QLabel("0.00")
         self._velocity_label.setProperty("class", "value")
         self._velocity_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -72,7 +75,8 @@ class StatusPanel(QGroupBox):
         pos_vel_layout.addWidget(QLabel("mm/s"), 1, 2)
 
         # 转矩 (可选显示)
-        pos_vel_layout.addWidget(QLabel("转矩:"), 2, 0)
+        self._torque_title = QLabel(tr("status_panel.torque"))
+        pos_vel_layout.addWidget(self._torque_title, 2, 0)
         self._torque_label = QLabel("0.0")
         self._torque_label.setProperty("class", "value")
         self._torque_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -88,42 +92,46 @@ class StatusPanel(QGroupBox):
         layout.addWidget(line)
 
         # 状态信息
-        status_layout = QFormLayout()
+        self._status_form = QFormLayout()
 
         # 驱动器状态
-        self._state_label = QLabel("未知")
-        status_layout.addRow("驱动器状态:", self._state_label)
+        self._state_label = QLabel(tr("status_panel.unknown"))
+        self._state_title = QLabel(tr("status_panel.drive_state"))
+        self._status_form.addRow(self._state_title, self._state_label)
 
         # 操作模式
         self._mode_label = QLabel("--")
-        status_layout.addRow("操作模式:", self._mode_label)
+        self._mode_title = QLabel(tr("status_panel.op_mode"))
+        self._status_form.addRow(self._mode_title, self._mode_label)
 
         # 错误码
-        self._error_label = QLabel("无")
-        status_layout.addRow("错误码:", self._error_label)
+        self._error_label = QLabel(tr("status_panel.none"))
+        self._error_title = QLabel(tr("status_panel.error_code"))
+        self._status_form.addRow(self._error_title, self._error_label)
 
-        layout.addLayout(status_layout)
+        layout.addLayout(self._status_form)
 
         # 状态指示灯
         indicator_layout = QHBoxLayout()
 
-        self._enabled_indicator = StatusIndicator("使能")
+        self._enabled_indicator = StatusIndicator(tr("status_panel.enabled"))
         indicator_layout.addWidget(self._enabled_indicator)
 
-        self._fault_indicator = StatusIndicator("故障")
+        self._fault_indicator = StatusIndicator(tr("status_panel.fault"))
         indicator_layout.addWidget(self._fault_indicator)
 
-        self._homed_indicator = StatusIndicator("回零")
+        self._homed_indicator = StatusIndicator(tr("status_panel.homed"))
         indicator_layout.addWidget(self._homed_indicator)
 
-        self._target_indicator = StatusIndicator("到位")
+        self._target_indicator = StatusIndicator(tr("status_panel.target"))
         indicator_layout.addWidget(self._target_indicator)
 
         layout.addLayout(indicator_layout)
 
         # 行程进度条
         stroke_layout = QVBoxLayout()
-        stroke_layout.addWidget(QLabel("行程位置:"))
+        self._stroke_title = QLabel(tr("status_panel.stroke_pos"))
+        stroke_layout.addWidget(self._stroke_title)
         self._stroke_bar = QProgressBar()
         self._stroke_bar.setMinimum(0)
         self._stroke_bar.setMaximum(100)
@@ -173,7 +181,7 @@ class StatusPanel(QGroupBox):
                 self._error_label.setText(f"0x{status.error_code:04X}")
                 self._error_label.setProperty("class", "status-error")
             else:
-                self._error_label.setText("无")
+                self._error_label.setText(tr("status_panel.none"))
                 self._error_label.setProperty("class", "")
 
             # 更新指示灯
@@ -208,6 +216,23 @@ class StatusPanel(QGroupBox):
         self._state_label.style().unpolish(self._state_label)
         self._state_label.style().polish(self._state_label)
 
+    def refresh_texts(self) -> None:
+        """刷新界面文本"""
+        self.setTitle(tr("status_panel.title"))
+        self._pos_title.setText(tr("status_panel.position"))
+        self._vel_title.setText(tr("status_panel.velocity"))
+        self._torque_title.setText(tr("status_panel.torque"))
+        self._state_title.setText(tr("status_panel.drive_state"))
+        self._mode_title.setText(tr("status_panel.op_mode"))
+        self._error_title.setText(tr("status_panel.error_code"))
+        self._stroke_title.setText(tr("status_panel.stroke_pos"))
+
+        # 更新指示灯标签
+        self._enabled_indicator.set_label(tr("status_panel.enabled"))
+        self._fault_indicator.set_label(tr("status_panel.fault"))
+        self._homed_indicator.set_label(tr("status_panel.homed"))
+        self._target_indicator.set_label(tr("status_panel.target"))
+
 
 class StatusIndicator(QWidget):
     """状态指示灯组件"""
@@ -232,9 +257,13 @@ class StatusIndicator(QWidget):
         layout.addWidget(self._light, alignment=Qt.AlignCenter)
 
         # 标签
-        label_widget = QLabel(label)
-        label_widget.setAlignment(Qt.AlignCenter)
-        layout.addWidget(label_widget)
+        self._label_widget = QLabel(label)
+        self._label_widget.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self._label_widget)
+
+    def set_label(self, text: str) -> None:
+        """设置标签文本"""
+        self._label_widget.setText(text)
 
     def set_active(self, active: bool, is_error: bool = False) -> None:
         """设置激活状态"""
