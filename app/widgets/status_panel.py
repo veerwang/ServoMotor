@@ -166,6 +166,12 @@ class StatusPanel(QGroupBox):
         self._error_title = QLabel(tr("status_panel.error_code"))
         self._status_form.addRow(self._error_title, self._error_label)
 
+        # 状态字 (调试用)
+        self._status_word_label = QLabel("0x0000")
+        self._status_word_label.setStyleSheet("color: #888; font-family: monospace;")
+        self._status_word_title = QLabel(tr("status_panel.status_word"))
+        self._status_form.addRow(self._status_word_title, self._status_word_label)
+
         layout.addLayout(self._status_form)
 
         # 状态指示灯
@@ -244,6 +250,30 @@ class StatusPanel(QGroupBox):
                 self._error_label.setProperty("class", "")
                 self._error_label.setToolTip("")
 
+            # 更新状态字
+            self._status_word_label.setText(f"0x{status.status_word:04X}")
+            # 解析状态字位
+            bits_info = []
+            if status.status_word & 0x0001:
+                bits_info.append("Ready")
+            if status.status_word & 0x0002:
+                bits_info.append("SwitchedOn")
+            if status.status_word & 0x0004:
+                bits_info.append("OpEnabled")
+            if status.status_word & 0x0008:
+                bits_info.append("Fault")
+            if status.status_word & 0x0010:
+                bits_info.append("VoltageOn")
+            if status.status_word & 0x0020:
+                bits_info.append("QuickStop")
+            if status.status_word & 0x0040:
+                bits_info.append("SwitchOnDisabled")
+            if status.status_word & 0x0080:
+                bits_info.append("Warning")
+            if status.status_word & 0x0400:
+                bits_info.append("TargetReached")
+            self._status_word_label.setToolTip(" | ".join(bits_info) if bits_info else "")
+
             # 更新指示灯
             self._enabled_indicator.set_active(status.is_enabled)
             self._fault_indicator.set_active(status.is_fault, is_error=True)
@@ -285,6 +315,7 @@ class StatusPanel(QGroupBox):
         self._state_title.setText(tr("status_panel.drive_state"))
         self._mode_title.setText(tr("status_panel.op_mode"))
         self._error_title.setText(tr("status_panel.error_code"))
+        self._status_word_title.setText(tr("status_panel.status_word"))
         self._stroke_title.setText(tr("status_panel.stroke_pos"))
 
         # 更新指示灯标签

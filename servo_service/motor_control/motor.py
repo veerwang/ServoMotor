@@ -226,6 +226,10 @@ class Motor:
         status_word = self.read_status_word()
         state = self._state_machine.update(status_word)
 
+        # 总是读取错误码，不仅仅在故障状态时
+        # 这样可以捕获所有错误，包括警告和历史故障
+        error_code = self.read_error_code()
+
         return MotorStatus(
             state=state,
             status_word=status_word,
@@ -234,9 +238,9 @@ class Motor:
             torque=self.read_torque(),
             operation_mode=self.read_operation_mode(),
             is_target_reached=bool(status_word & StatusWordBits.TARGET_REACHED),
-            is_fault=bool(status_word & StatusWordBits.FAULT),
+            is_fault=bool(status_word & StatusWordBits.FAULT) or error_code != 0,
             is_warning=bool(status_word & StatusWordBits.WARNING),
-            error_code=self.read_error_code() if status_word & StatusWordBits.FAULT else 0,
+            error_code=error_code,
         )
 
     # ==================== 状态控制 ====================

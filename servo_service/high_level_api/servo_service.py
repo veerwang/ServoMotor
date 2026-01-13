@@ -57,6 +57,9 @@ class AxisStatus:
     error_code: int
     """错误码"""
 
+    status_word: int = 0
+    """状态字原始值 (调试用)"""
+
 
 class ServoService:
     """
@@ -386,6 +389,7 @@ class ServoService:
                 is_homed=False,
                 is_target_reached=False,
                 error_code=0,
+                status_word=0,
             )
 
         motor = self.get_motor(axis)
@@ -402,6 +406,7 @@ class ServoService:
             is_homed=self._homed_axes.get(axis, False),
             is_target_reached=status.is_target_reached,
             error_code=status.error_code,
+            status_word=status.status_word,
         )
 
     def get_all_axis_status(self) -> Dict[AxisName, AxisStatus]:

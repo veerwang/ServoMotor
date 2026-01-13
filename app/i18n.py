@@ -351,6 +351,10 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "错误码:",
         Language.ENGLISH: "Error Code:",
     },
+    "status_panel.status_word": {
+        Language.CHINESE: "状态字:",
+        Language.ENGLISH: "Status Word:",
+    },
     "status_panel.none": {
         Language.CHINESE: "无",
         Language.ENGLISH: "None",
