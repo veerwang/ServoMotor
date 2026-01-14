@@ -80,8 +80,8 @@ class MainWindow(QMainWindow):
     def _init_ui(self) -> None:
         """初始化用户界面"""
         self.setWindowTitle(tr("app.title"))
-        self.setMinimumSize(1024, 700)
-        self.resize(1280, 800)
+        self.setMinimumSize(1024, 800)
+        self.resize(1280, 900)
 
         # 设置窗口图标
         icon_path = Path(__file__).parent / "resources" / "motor_icon.png"
