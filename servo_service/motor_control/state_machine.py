@@ -104,36 +104,76 @@ def decode_status_word(status_word: int) -> DriveState:
     """
     从状态字解码驱动器状态
 
+    根据 CiA402 标准，状态由以下位决定:
+    - Bit 0: Ready to switch on
+    - Bit 1: Switched on
+    - Bit 2: Operation enabled
+    - Bit 3: Fault
+    - Bit 5: Quick stop (0=激活)
+    - Bit 6: Switch on disabled
+
+    状态模式 (x=无关):
+    | 状态字模式           | 状态                    |
+    |---------------------|------------------------|
+    | xxxx xxxx x0xx 0000 | Not ready to switch on |
+    | xxxx xxxx x1xx 0000 | Switch on disabled     |
+    | xxxx xxxx x01x 0001 | Ready to switch on     |
+    | xxxx xxxx x01x 0011 | Switched on            |
+    | xxxx xxxx x01x 0111 | Operation enabled      |
+    | xxxx xxxx x00x 0111 | Quick stop active      |
+    | xxxx xxxx x0xx 1111 | Fault reaction active  |
+    | xxxx xxxx x0xx 1000 | Fault                  |
+
     Args:
         status_word: 状态字值
 
     Returns:
         当前驱动器状态
     """
-    # 提取状态相关位
+    # 提取状态相关位 (bits 0-3, 5, 6)
     state_bits = status_word & StatusWordBits.STATE_MASK
 
-    # 检查故障状态
+    # 检查故障状态 (Bit 3 = 1)
     if status_word & StatusWordBits.FAULT:
-        if state_bits == 0x0F:
+        # Fault reaction active: xxxx xxxx x0xx 1111
+        if (state_bits & 0x004F) == 0x000F:
             return DriveState.FAULT_REACTION_ACTIVE
+        # Fault: xxxx xxxx x0xx 1000
         return DriveState.FAULT
 
-    # 根据状态位判断
-    if state_bits == StatusWordBits.STATE_NOT_READY_TO_SWITCH_ON:
-        return DriveState.NOT_READY_TO_SWITCH_ON
-    elif state_bits == StatusWordBits.STATE_SWITCH_ON_DISABLED:
-        return DriveState.SWITCH_ON_DISABLED
-    elif state_bits == StatusWordBits.STATE_READY_TO_SWITCH_ON:
-        return DriveState.READY_TO_SWITCH_ON
-    elif state_bits == StatusWordBits.STATE_SWITCHED_ON:
-        return DriveState.SWITCHED_ON
-    elif state_bits == StatusWordBits.STATE_OPERATION_ENABLED:
+    # 按照优先级检查其他状态 (使用位掩码而非精确匹配)
+
+    # Operation enabled: xxxx xxxx x01x 0111
+    # 需要 bits 0-2 = 111, bit 5 = 1, bit 6 = 0
+    if (state_bits & 0x006F) == 0x0027:
         return DriveState.OPERATION_ENABLED
-    elif state_bits == StatusWordBits.STATE_QUICK_STOP_ACTIVE:
+
+    # Quick stop active: xxxx xxxx x00x 0111
+    # 需要 bits 0-2 = 111, bit 5 = 0, bit 6 = 0
+    if (state_bits & 0x006F) == 0x0007:
         return DriveState.QUICK_STOP_ACTIVE
-    else:
-        return DriveState.UNKNOWN
+
+    # Switched on: xxxx xxxx x01x 0011
+    # 需要 bits 0-1 = 11, bit 2 = 0, bit 5 = 1, bit 6 = 0
+    if (state_bits & 0x006F) == 0x0023:
+        return DriveState.SWITCHED_ON
+
+    # Ready to switch on: xxxx xxxx x01x 0001
+    # 需要 bit 0 = 1, bits 1-2 = 0, bit 5 = 1, bit 6 = 0
+    if (state_bits & 0x006F) == 0x0021:
+        return DriveState.READY_TO_SWITCH_ON
+
+    # Switch on disabled: xxxx xxxx x1xx 0000
+    # 需要 bits 0-3 = 0, bit 6 = 1, bit 5 可以是任意值
+    if (state_bits & 0x004F) == 0x0040:
+        return DriveState.SWITCH_ON_DISABLED
+
+    # Not ready to switch on: xxxx xxxx x0xx 0000
+    # 需要 bits 0-3 = 0, bit 6 = 0 (bit 5 可以是任意值)
+    if (state_bits & 0x004F) == 0x0000:
+        return DriveState.NOT_READY_TO_SWITCH_ON
+
+    return DriveState.UNKNOWN
 
 
 def get_command_control_word(command: DriveCommand) -> int:

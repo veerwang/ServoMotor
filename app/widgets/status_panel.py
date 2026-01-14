@@ -248,6 +248,15 @@ class StatusPanel(QGroupBox):
             self._state_label.setText(status.state.value)
             self._update_state_style(status.state)
 
+            # 如果状态为 Unknown，记录调试信息
+            if status.state == DriveState.UNKNOWN:
+                state_bits = status.status_word & 0x006F
+                logger.warning(
+                    f"驱动器状态解析为 Unknown: "
+                    f"status_word=0x{status.status_word:04X}, "
+                    f"state_bits=0x{state_bits:04X}"
+                )
+
             # 更新操作模式
             mode_names = {
                 1: "轮廓位置",
@@ -321,10 +330,14 @@ class StatusPanel(QGroupBox):
         base_style = "font-size: 13px; font-weight: bold;"
         if state == DriveState.OPERATION_ENABLED:
             self._state_label.setStyleSheet(f"{base_style} color: #28a745;")  # 绿色
-        elif state == DriveState.FAULT:
+        elif state == DriveState.FAULT or state == DriveState.FAULT_REACTION_ACTIVE:
             self._state_label.setStyleSheet(f"{base_style} color: #dc3545;")  # 红色
         elif state in (DriveState.READY_TO_SWITCH_ON, DriveState.SWITCHED_ON):
             self._state_label.setStyleSheet(f"{base_style} color: #ffc107;")  # 黄色
+        elif state == DriveState.UNKNOWN:
+            self._state_label.setStyleSheet(f"{base_style} color: #ff9800;")  # 橙色
+        elif state == DriveState.SWITCH_ON_DISABLED:
+            self._state_label.setStyleSheet(f"{base_style} color: #17a2b8;")  # 青色
         else:
             self._state_label.setStyleSheet(f"{base_style} color: #fff;")
 
