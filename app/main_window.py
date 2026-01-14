@@ -886,7 +886,8 @@ class MainWindow(QMainWindow):
 
     def _update_panels_enabled(self, enabled: bool) -> None:
         """更新面板启用状态"""
-        self._axis_panel.setEnabled(enabled)
+        # 轴选择面板始终可用，允许用户在连接前选择目标轴
+        # self._axis_panel.setEnabled(enabled)
         self._status_panel.setEnabled(enabled)
         self._motion_panel.setEnabled(enabled)
         self._parameter_panel.setEnabled(enabled)
