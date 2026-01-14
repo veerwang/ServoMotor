@@ -115,6 +115,7 @@ class Motor:
         self._state_timeout = state_timeout
         self._motion_timeout = motion_timeout
         self._state_machine = StateMachine()
+        self._brake_release_delay_ms = 0  # 抱闸释放延迟 (ms)
 
     @property
     def slave_id(self) -> int:
@@ -282,6 +283,12 @@ class Motor:
         # 等待到达目标状态
         self._wait_for_state(DriveState.OPERATION_ENABLED, timeout)
         logger.info("电机使能成功")
+
+        # 等待抱闸释放 (如果配置了抱闸释放延迟)
+        if hasattr(self, '_brake_release_delay_ms') and self._brake_release_delay_ms > 0:
+            delay_s = self._brake_release_delay_ms / 1000.0
+            logger.info(f"等待抱闸释放 ({self._brake_release_delay_ms}ms)...")
+            time.sleep(delay_s)
 
     def disable(self, timeout: Optional[float] = None) -> None:
         """
@@ -1060,6 +1067,38 @@ class Motor:
             self._slave_id, Registers.DO1_LOGIC.address, logic
         )
         logger.info(f"抱闸设置为自动控制模式 (DO{do_number}, 逻辑={logic})")
+
+    def set_brake_release_delay(self, delay_ms: int) -> None:
+        """
+        设置抱闸释放延迟时间
+
+        Args:
+            delay_ms: 延迟时间 (毫秒)
+
+        Note:
+            使能电机后，会等待此延迟时间以确保抱闸完全释放
+        """
+        self._brake_release_delay_ms = delay_ms
+        logger.info(f"抱闸释放延迟设置为 {delay_ms}ms")
+
+    def wait_for_brake_release(self, delay_ms: Optional[int] = None) -> None:
+        """
+        等待抱闸释放
+
+        Args:
+            delay_ms: 延迟时间 (毫秒)，如果为 None 则使用已配置的延迟时间
+
+        Note:
+            在抱闸自动模式下，使能电机后调用此函数等待抱闸完全释放
+        """
+        if delay_ms is None:
+            delay_ms = self._brake_release_delay_ms
+
+        if delay_ms > 0:
+            delay_s = delay_ms / 1000.0
+            logger.info(f"等待抱闸释放 ({delay_ms}ms)...")
+            time.sleep(delay_s)
+            logger.info("抱闸释放完成")
 
     def __repr__(self) -> str:
         return f"Motor(slave_id={self._slave_id}, state={self.get_state().value})"

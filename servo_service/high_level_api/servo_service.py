@@ -349,6 +349,11 @@ class ServoService:
 
         # 6. 配置抱闸 (如果有)
         if config.has_brake:
+            # 设置抱闸释放延迟
+            motor.set_brake_release_delay(config.brake_release_delay_ms)
+            if verbose:
+                logger.info(f"  抱闸释放延迟: {config.brake_release_delay_ms}ms")
+
             if config.brake_auto_control:
                 # 设置为驱动器自动控制模式
                 motor.set_brake_auto_control(
@@ -686,6 +691,34 @@ class ServoService:
             return do_bit == 1  # 高电平释放
         else:
             return do_bit == 0  # 低电平释放
+
+    def wait_for_brake_release(
+        self,
+        axis: Optional[AxisName] = None,
+        delay_ms: Optional[int] = None
+    ) -> None:
+        """
+        等待抱闸释放
+
+        Args:
+            axis: 轴名称
+            delay_ms: 延迟时间 (毫秒)，如果为 None 则使用轴配置的延迟时间
+
+        Note:
+            在抱闸自动模式下，使能电机后调用此函数等待抱闸完全释放
+        """
+        if axis is None:
+            axis = self._current_axis
+
+        config = self.get_axis_config(axis)
+        if not config.has_brake:
+            return  # 没有抱闸，无需等待
+
+        if delay_ms is None:
+            delay_ms = config.brake_release_delay_ms
+
+        motor = self.get_motor(axis)
+        motor.wait_for_brake_release(delay_ms)
 
     # ==================== 运动控制 ====================
 

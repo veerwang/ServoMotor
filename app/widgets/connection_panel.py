@@ -147,6 +147,14 @@ class ConnectionPanel(QGroupBox):
 
         try:
             self._service.connect(port, baudrate)
+
+            # 初始化当前轴的电机参数 (包括抱闸配置)
+            try:
+                self._service.initialize_motor_parameters()
+                logger.info("Motor parameters initialized")
+            except Exception as init_err:
+                logger.warning(f"Failed to initialize motor parameters: {init_err}")
+
             self._update_connected_state(True)
             self.connected.emit()
             logger.info(f"Connected to {port} @ {baudrate}")

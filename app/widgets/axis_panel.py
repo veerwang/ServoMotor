@@ -137,6 +137,15 @@ class AxisPanel(QGroupBox):
 
         self._service.current_axis = axis
         self._update_info(axis)
+
+        # 初始化新轴的电机参数 (包括抱闸配置)
+        if self._service.is_connected:
+            try:
+                self._service.initialize_motor_parameters(axis)
+                logger.info(f"Initialized motor parameters for axis {axis.value}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize motor parameters for axis {axis.value}: {e}")
+
         self.axis_changed.emit(axis)
 
         logger.debug(f"选择轴: {axis.value}")
