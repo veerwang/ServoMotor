@@ -478,9 +478,9 @@ class Registers:
     # ==================== 编码器配置 ====================
 
     # 编码器分辨率 - 增量 (608Fh:01) - 32位
-    # 根据 NiMotion 手册: 608Fh:01 → Modbus 0x0408
+    # 根据 NiMotion 手册: 608Fh:01 → Modbus 0x0406
     ENCODER_RESOLUTION_NUM = RegisterDef(
-        address=0x0408,
+        address=0x0406,
         name="EncoderResolutionNum",
         description="编码器分辨率-分子 (encoder_increment)",
         size=2,
@@ -489,9 +489,9 @@ class Registers:
     )
 
     # 编码器分辨率 - 电机圈数 (608Fh:02) - 32位
-    # 根据 NiMotion 手册: 608Fh:02 → Modbus 0x040A
+    # 根据 NiMotion 手册: 608Fh:02 → Modbus 0x0408
     ENCODER_RESOLUTION_DEN = RegisterDef(
-        address=0x040A,
+        address=0x0408,
         name="EncoderResolutionDen",
         description="编码器分辨率-分母 (motor_turns)",
         size=2,
