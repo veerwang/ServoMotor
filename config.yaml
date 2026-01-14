@@ -53,6 +53,7 @@ axes:
     homing_timeout: 60000
     homing_velocity_high: 20.0  # mm/s
     homing_velocity_low: 4.0    # mm/s
+    velocity_polarity: -1       # 速度方向反转 (点动方向修正)
     # DI 配置
     di2_function: 15  # 负限位
     di2_logic: 0

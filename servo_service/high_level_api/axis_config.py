@@ -250,6 +250,7 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         homing_acceleration=100.0,
         homing_method=17,  # NEGATIVE_LIMIT_SWITCH: 负限位开关回零
         homing_timeout=60000,
+        velocity_polarity=-1,  # 速度方向反转 (点动方向修正)
         # DI 配置
         di2_function=15,  # DI2 = 负限位
         di2_logic=0,  # 低电平有效
