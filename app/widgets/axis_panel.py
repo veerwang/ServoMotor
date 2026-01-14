@@ -1,7 +1,7 @@
 """
 轴选择面板组件
 
-提供 X/Y/Z 轴选择功能。
+提供 Z1/Y/Z 轴选择功能。
 """
 
 import logging
@@ -28,7 +28,7 @@ class AxisPanel(QGroupBox):
     """
     轴选择面板
 
-    用于选择当前控制的轴 (X/Y/Z)。
+    用于选择当前控制的轴 (Z1/Y/Z)。
     """
 
     # 信号
@@ -94,7 +94,7 @@ class AxisPanel(QGroupBox):
             }
         """
 
-        for axis in AxisName:
+        for idx, axis in enumerate(AxisName):
             config = get_axis_config(axis)
             btn = QPushButton(axis.value)
             btn.setCheckable(True)
@@ -104,12 +104,12 @@ class AxisPanel(QGroupBox):
                 f"{tr('axis.stroke')}: {config.stroke_min}-{config.stroke_max}mm"
             )
             btn.setStyleSheet(self._button_style_normal)
-            self._axis_group.addButton(btn, axis.value.encode()[0])  # X=88, Y=89, Z=90
+            self._axis_group.addButton(btn, idx)
             axis_layout.addWidget(btn)
             self._axis_buttons[axis] = btn
 
-            # 默认选中 Z 轴
-            if axis == AxisName.Z:
+            # 默认选中 Z1 轴
+            if axis == AxisName.Z1:
                 btn.setChecked(True)
                 btn.setStyleSheet(self._button_style_selected)
 
@@ -117,7 +117,7 @@ class AxisPanel(QGroupBox):
 
         # 当前轴信息
         self._info_label = QLabel()
-        self._update_info(AxisName.Z)
+        self._update_info(AxisName.Z1)
         layout.addWidget(self._info_label)
 
         # 连接信号
@@ -125,7 +125,7 @@ class AxisPanel(QGroupBox):
 
     def _on_axis_clicked(self, button: QPushButton) -> None:
         """轴选择按钮点击"""
-        axis_name = button.text()[0]  # 获取第一个字符 X/Y/Z
+        axis_name = button.text()  # 获取完整轴名 (Z1/Y/Z)
         axis = AxisName(axis_name)
 
         # 更新所有按钮样式
@@ -172,7 +172,7 @@ class AxisPanel(QGroupBox):
     def set_current_axis(self, axis: AxisName) -> None:
         """设置当前轴"""
         for button in self._axis_group.buttons():
-            if button.text()[0] == axis.value:
+            if button.text() == axis.value:
                 button.setChecked(True)
                 self._on_axis_clicked(button)
                 break
@@ -183,7 +183,7 @@ class AxisPanel(QGroupBox):
 
         for axis, btn in self._axis_buttons.items():
             config = get_axis_config(axis)
-            # 按钮文字只显示轴名 (X/Y/Z)，不需要翻译
+            # 按钮文字只显示轴名 (Z1/Y/Z)，不需要翻译
             btn.setToolTip(
                 f"{tr('axis.model')}: {config.model}\n"
                 f"{tr('axis.power')}: {config.motor_power}W\n"

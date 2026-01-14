@@ -285,9 +285,9 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "轴选择",
         Language.ENGLISH: "Axis Selection",
     },
-    "axis.x": {
-        Language.CHINESE: "X 轴",
-        Language.ENGLISH: "X Axis",
+    "axis.z1": {
+        Language.CHINESE: "Z1 轴",
+        Language.ENGLISH: "Z1 Axis",
     },
     "axis.y": {
         Language.CHINESE: "Y 轴",

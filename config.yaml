@@ -23,25 +23,41 @@ communication:
   # 帧间隔 (秒), 默认 3.5 字符时间
   frame_interval: 0.003
 
-# 轴配置 (XYG321-A 三轴平台)
+# 轴配置
 axes:
   # 默认控制轴
-  default_axis: "Z"
+  default_axis: "Z1"
 
-  # X 轴配置
-  x:
-    slave_id: 1
-    model: "CFG8"
-    motor_power: 200
-    has_brake: false
-    ball_screw_lead: 20.0
-    max_velocity: 1000.0
-    stroke_min: 50.0
-    stroke_max: 1100.0
-    positioning_accuracy: 0.02
+  # Z1 轴配置 (驱动平台)
+  z1:
+    slave_id: 4
+    model: "PMMP4010D-485-OHEB-D04"
+    motor_power: 100
+    has_brake: true
+    ball_screw_lead: 10.0
+    max_velocity: 500.0
+    stroke_min: 0.0
+    stroke_max: 61.0  # 实测行程
+    positioning_accuracy: 0.01
     repeat_accuracy: 0.005
-    max_payload_horizontal: 75.0
-    max_payload_vertical: 30.0
+    max_payload_horizontal: 20.0
+    max_payload_vertical: 10.0
+    encoder_type: "single_turn_absolute"
+    encoder_resolution: 131072  # 17-bit absolute encoder
+    # 抱闸配置
+    brake_do_number: 1
+    brake_do_logic: 1
+    brake_release_delay_ms: 500
+    # 回零配置
+    homing_method: 17  # 负限位开关回零
+    homing_timeout: 60000
+    homing_velocity_high: 20.0  # mm/s
+    homing_velocity_low: 4.0    # mm/s
+    # DI 配置
+    di2_function: 15  # 负限位
+    di2_logic: 0
+    di3_function: 14  # 正限位
+    di3_logic: 0
 
   # Y 轴配置
   y:
@@ -86,9 +102,9 @@ control:
   # 快速停止减速度 (mm/s²)
   quick_stop_deceleration: 1000.0
   # 回零高速 (mm/s)
-  homing_velocity_high: 50.0
+  homing_velocity_high: 20.0
   # 回零低速 (mm/s)
-  homing_velocity_low: 10.0
+  homing_velocity_low: 4.0
   # 回零加速度 (mm/s²)
   homing_acceleration: 100.0
 

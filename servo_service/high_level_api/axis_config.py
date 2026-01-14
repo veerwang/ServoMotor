@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class AxisName(Enum):
     """轴名称枚举"""
 
-    X = "X"
+    Z1 = "Z1"
     Y = "Y"
     Z = "Z"
 
@@ -221,29 +221,43 @@ class AxisConfig:
         return self.stroke_min <= position_mm <= self.stroke_max
 
 
-# XYG321-A 平台预定义配置
+# 平台预定义配置
 DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
-    AxisName.X: AxisConfig(
-        name=AxisName.X,
-        slave_id=1,
-        model="CFG8",
-        motor_power=200,
-        has_brake=False,
-        ball_screw_lead=20.0,
-        max_velocity=1000.0,
-        stroke_min=50.0,
-        stroke_max=1100.0,
-        positioning_accuracy=0.02,
+    AxisName.Z1: AxisConfig(
+        name=AxisName.Z1,
+        slave_id=4,
+        model="PMMP4010D-485-OHEB-D04",
+        motor_power=100,
+        has_brake=True,
+        brake_do_number=1,
+        brake_do_logic=1,  # 高电平释放
+        brake_release_delay_ms=500,
+        brake_auto_control=True,
+        ball_screw_lead=10.0,
+        max_velocity=500.0,
+        stroke_min=0.0,
+        stroke_max=61.0,  # 实测行程
+        positioning_accuracy=0.01,
         repeat_accuracy=0.005,
-        max_payload_horizontal=75.0,
-        max_payload_vertical=30.0,
-        encoder_resolution=10000,
-        default_velocity=200.0,
+        max_payload_horizontal=20.0,
+        max_payload_vertical=10.0,
+        encoder_resolution=131072,  # 17-bit absolute encoder (实测 129969, 理论 131072)
+        default_velocity=100.0,
         default_acceleration=500.0,
         default_deceleration=500.0,
-        homing_velocity_high=50.0,
-        homing_velocity_low=10.0,
+        homing_velocity_high=20.0,
+        homing_velocity_low=4.0,
         homing_acceleration=100.0,
+        homing_method=17,  # NEGATIVE_LIMIT_SWITCH: 负限位开关回零
+        homing_timeout=60000,
+        # DI 配置
+        di2_function=15,  # DI2 = 负限位
+        di2_logic=0,  # 低电平有效
+        di3_function=14,  # DI3 = 正限位
+        di3_logic=0,  # 低电平有效
+        # 堵转回零参数
+        blocking_torque=300,  # 30%
+        blocking_time=500,  # 500ms
     ),
     AxisName.Y: AxisConfig(
         name=AxisName.Y,

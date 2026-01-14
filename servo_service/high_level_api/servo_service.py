@@ -102,7 +102,7 @@ class ServoService:
         self._motors: Dict[AxisName, Motor] = {}
 
         # 当前选中的轴
-        self._current_axis: AxisName = AxisName.Z
+        self._current_axis: AxisName = AxisName.Z1
 
         # 回零状态
         self._homed_axes: Dict[AxisName, bool] = {axis: False for axis in AxisName}
