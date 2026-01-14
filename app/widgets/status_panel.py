@@ -152,26 +152,38 @@ class StatusPanel(QGroupBox):
 
         # 状态信息
         self._status_form = QFormLayout()
+        self._status_form.setSpacing(8)
+
+        # 标签样式
+        title_style = "font-size: 13px; color: #aaa;"
+        value_style = "font-size: 13px; font-weight: bold; color: #fff;"
 
         # 驱动器状态
         self._state_label = QLabel(tr("status_panel.unknown"))
+        self._state_label.setStyleSheet(value_style)
         self._state_title = QLabel(tr("status_panel.drive_state"))
+        self._state_title.setStyleSheet(title_style)
         self._status_form.addRow(self._state_title, self._state_label)
 
         # 操作模式
         self._mode_label = QLabel("--")
+        self._mode_label.setStyleSheet(value_style)
         self._mode_title = QLabel(tr("status_panel.op_mode"))
+        self._mode_title.setStyleSheet(title_style)
         self._status_form.addRow(self._mode_title, self._mode_label)
 
         # 错误码
         self._error_label = QLabel(tr("status_panel.none"))
+        self._error_label.setStyleSheet(value_style)
         self._error_title = QLabel(tr("status_panel.error_code"))
+        self._error_title.setStyleSheet(title_style)
         self._status_form.addRow(self._error_title, self._error_label)
 
-        # 状态字 (调试用)
+        # 状态字
         self._status_word_label = QLabel("0x0000")
-        self._status_word_label.setStyleSheet("color: #888; font-family: monospace;")
+        self._status_word_label.setStyleSheet("font-size: 13px; color: #4fc3f7; font-family: monospace;")
         self._status_word_title = QLabel(tr("status_panel.status_word"))
+        self._status_word_title.setStyleSheet(title_style)
         self._status_form.addRow(self._status_word_title, self._status_word_label)
 
         layout.addLayout(self._status_form)
@@ -255,11 +267,11 @@ class StatusPanel(QGroupBox):
             if status.error_code:
                 desc = get_error_description(status.error_code)
                 self._error_label.setText(f"0x{status.error_code:04X} - {desc}")
-                self._error_label.setProperty("class", "status-error")
+                self._error_label.setStyleSheet("font-size: 13px; font-weight: bold; color: #dc3545;")
                 self._error_label.setToolTip(f"故障码: 0x{status.error_code:04X}\n{desc}")
             else:
                 self._error_label.setText(tr("status_panel.none"))
-                self._error_label.setProperty("class", "")
+                self._error_label.setStyleSheet("font-size: 13px; font-weight: bold; color: #28a745;")
                 self._error_label.setToolTip("")
 
             # 更新状态字
@@ -306,17 +318,15 @@ class StatusPanel(QGroupBox):
 
     def _update_state_style(self, state: DriveState) -> None:
         """更新状态文字样式"""
+        base_style = "font-size: 13px; font-weight: bold;"
         if state == DriveState.OPERATION_ENABLED:
-            self._state_label.setProperty("class", "status-ok")
+            self._state_label.setStyleSheet(f"{base_style} color: #28a745;")  # 绿色
         elif state == DriveState.FAULT:
-            self._state_label.setProperty("class", "status-error")
+            self._state_label.setStyleSheet(f"{base_style} color: #dc3545;")  # 红色
         elif state in (DriveState.READY_TO_SWITCH_ON, DriveState.SWITCHED_ON):
-            self._state_label.setProperty("class", "status-warning")
+            self._state_label.setStyleSheet(f"{base_style} color: #ffc107;")  # 黄色
         else:
-            self._state_label.setProperty("class", "")
-
-        self._state_label.style().unpolish(self._state_label)
-        self._state_label.style().polish(self._state_label)
+            self._state_label.setStyleSheet(f"{base_style} color: #fff;")
 
     def _on_clear_fault(self) -> None:
         """清除故障"""
