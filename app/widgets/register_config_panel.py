@@ -648,6 +648,10 @@ class RegisterConfigPanel(QGroupBox):
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
+        # 任意寄存器读写组
+        arbitrary_group = self._create_arbitrary_register_group()
+        layout.addWidget(arbitrary_group)
+
         # 详细信息组
         detail_group = QGroupBox(tr("regconfig.detail"))
         detail_layout = QVBoxLayout(detail_group)
@@ -741,6 +745,224 @@ class RegisterConfigPanel(QGroupBox):
         layout.addStretch()
 
         return widget
+
+    def _create_arbitrary_register_group(self) -> QGroupBox:
+        """创建任意寄存器读写组"""
+        group = QGroupBox(tr("regconfig.arbitrary.title"))
+        layout = QVBoxLayout(group)
+
+        # 地址输入行
+        addr_layout = QHBoxLayout()
+        self._arb_addr_label = QLabel(tr("regconfig.arbitrary.address"))
+        addr_layout.addWidget(self._arb_addr_label)
+        self._arb_addr_edit = QLineEdit()
+        self._arb_addr_edit.setPlaceholderText("0x0380")
+        self._arb_addr_edit.setMaximumWidth(100)
+        addr_layout.addWidget(self._arb_addr_edit)
+
+        # 数据类型选择
+        self._arb_type_label = QLabel(tr("regconfig.arbitrary.type"))
+        addr_layout.addWidget(self._arb_type_label)
+        self._arb_type_combo = QComboBox()
+        self._arb_type_combo.addItems(["UINT16", "INT16", "UINT32", "INT32"])
+        self._arb_type_combo.setMaximumWidth(80)
+        addr_layout.addWidget(self._arb_type_combo)
+
+        addr_layout.addStretch()
+        layout.addLayout(addr_layout)
+
+        # 读取行
+        read_layout = QHBoxLayout()
+        self._arb_read_btn = QPushButton(tr("regconfig.arbitrary.read"))
+        self._arb_read_btn.clicked.connect(self._read_arbitrary_register)
+        read_layout.addWidget(self._arb_read_btn)
+
+        self._arb_read_value_label = QLabel("--")
+        self._arb_read_value_label.setProperty("class", "value")
+        self._arb_read_value_label.setMinimumWidth(120)
+        read_layout.addWidget(self._arb_read_value_label)
+
+        # 显示格式
+        self._arb_hex_label = QLabel("")
+        self._arb_hex_label.setStyleSheet("color: #888; font-family: monospace;")
+        read_layout.addWidget(self._arb_hex_label)
+
+        read_layout.addStretch()
+        layout.addLayout(read_layout)
+
+        # 写入行
+        write_layout = QHBoxLayout()
+        self._arb_write_label = QLabel(tr("regconfig.arbitrary.value"))
+        write_layout.addWidget(self._arb_write_label)
+        self._arb_write_edit = QLineEdit()
+        self._arb_write_edit.setPlaceholderText(tr("regconfig.arbitrary.value_hint"))
+        self._arb_write_edit.setMaximumWidth(150)
+        write_layout.addWidget(self._arb_write_edit)
+
+        self._arb_write_btn = QPushButton(tr("regconfig.arbitrary.write"))
+        self._arb_write_btn.setProperty("class", "warning")
+        self._arb_write_btn.clicked.connect(self._write_arbitrary_register)
+        write_layout.addWidget(self._arb_write_btn)
+
+        write_layout.addStretch()
+        layout.addLayout(write_layout)
+
+        return group
+
+    def _read_arbitrary_register(self) -> None:
+        """读取任意寄存器"""
+        if not self._service.is_connected:
+            QMessageBox.warning(self, tr("common.warning"), tr("regconfig.connect_first"))
+            return
+
+        # 解析地址
+        addr_str = self._arb_addr_edit.text().strip()
+        if not addr_str:
+            QMessageBox.warning(self, tr("common.warning"), tr("regconfig.arbitrary.enter_addr"))
+            return
+
+        try:
+            if addr_str.startswith("0x") or addr_str.startswith("0X"):
+                address = int(addr_str, 16)
+            else:
+                address = int(addr_str)
+        except ValueError:
+            QMessageBox.warning(self, tr("common.error"), tr("regconfig.arbitrary.invalid_addr"))
+            return
+
+        # 获取数据类型
+        type_str = self._arb_type_combo.currentText()
+        is_32bit = "32" in type_str
+        is_signed = type_str.startswith("INT")
+
+        self.request_pause_timer.emit()
+        try:
+            motor = self._service.get_motor()
+            if motor is None:
+                raise RuntimeError("No motor connected")
+
+            client = self._service.get_modbus_client()
+            if client is None:
+                raise RuntimeError("No Modbus client available")
+
+            if is_32bit:
+                value = client.read_register_32bit(
+                    motor.slave_id, address, signed=is_signed
+                )
+                hex_str = f"0x{value & 0xFFFFFFFF:08X}"
+            else:
+                value = client.read_register(motor.slave_id, address)
+                if is_signed and value > 32767:
+                    value -= 65536
+                hex_str = f"0x{value & 0xFFFF:04X}"
+
+            self._arb_read_value_label.setText(str(value))
+            self._arb_hex_label.setText(hex_str)
+
+        except Exception as e:
+            QMessageBox.warning(self, tr("common.error"), f"{tr('regconfig.read_failed')}: {e}")
+            self._arb_read_value_label.setText("--")
+            self._arb_hex_label.setText("")
+        finally:
+            self.request_resume_timer.emit()
+
+    def _write_arbitrary_register(self) -> None:
+        """写入任意寄存器"""
+        if not self._service.is_connected:
+            QMessageBox.warning(self, tr("common.warning"), tr("regconfig.connect_first"))
+            return
+
+        # 解析地址
+        addr_str = self._arb_addr_edit.text().strip()
+        if not addr_str:
+            QMessageBox.warning(self, tr("common.warning"), tr("regconfig.arbitrary.enter_addr"))
+            return
+
+        try:
+            if addr_str.startswith("0x") or addr_str.startswith("0X"):
+                address = int(addr_str, 16)
+            else:
+                address = int(addr_str)
+        except ValueError:
+            QMessageBox.warning(self, tr("common.error"), tr("regconfig.arbitrary.invalid_addr"))
+            return
+
+        # 解析值
+        value_str = self._arb_write_edit.text().strip()
+        if not value_str:
+            QMessageBox.warning(self, tr("common.warning"), tr("regconfig.enter_value"))
+            return
+
+        try:
+            if value_str.startswith("0x") or value_str.startswith("0X"):
+                value = int(value_str, 16)
+            elif value_str.startswith("0b") or value_str.startswith("0B"):
+                value = int(value_str, 2)
+            else:
+                value = int(value_str)
+        except ValueError:
+            QMessageBox.warning(self, tr("common.error"), tr("regconfig.invalid_value"))
+            return
+
+        # 获取数据类型
+        type_str = self._arb_type_combo.currentText()
+        is_32bit = "32" in type_str
+        is_signed = type_str.startswith("INT")
+
+        # 确认写入
+        reply = QMessageBox.warning(
+            self,
+            tr("common.confirm"),
+            tr("regconfig.arbitrary.confirm_write", address=f"0x{address:04X}", value=value),
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+
+        self.request_pause_timer.emit()
+        try:
+            motor = self._service.get_motor()
+            if motor is None:
+                raise RuntimeError("No motor connected")
+
+            client = self._service.get_modbus_client()
+            if client is None:
+                raise RuntimeError("No Modbus client available")
+
+            if is_32bit:
+                client.write_register_32bit(
+                    motor.slave_id, address, value, signed=is_signed
+                )
+            else:
+                client.write_register(motor.slave_id, address, value)
+
+            # 读回验证
+            if is_32bit:
+                actual = client.read_register_32bit(
+                    motor.slave_id, address, signed=is_signed
+                )
+                hex_str = f"0x{actual & 0xFFFFFFFF:08X}"
+            else:
+                actual = client.read_register(motor.slave_id, address)
+                if is_signed and actual > 32767:
+                    actual -= 65536
+                hex_str = f"0x{actual & 0xFFFF:04X}"
+
+            self._arb_read_value_label.setText(str(actual))
+            self._arb_hex_label.setText(hex_str)
+
+            if actual == value:
+                QMessageBox.information(self, tr("common.success"), tr("regconfig.write_success"))
+            else:
+                QMessageBox.warning(
+                    self, tr("common.warning"),
+                    tr("regconfig.write_mismatch", expected=value, actual=actual)
+                )
+        except Exception as e:
+            QMessageBox.warning(self, tr("common.error"), f"{tr('regconfig.write_failed')}: {e}")
+        finally:
+            self.request_resume_timer.emit()
 
     def _get_current_category(self) -> RegisterCategory:
         """获取当前选择的分类"""
@@ -1074,6 +1296,14 @@ class RegisterConfigPanel(QGroupBox):
                 tr("regconfig.col.unit"),
                 tr("regconfig.col.critical"),
             ])
+
+        # 任意寄存器读写组
+        self._arb_addr_label.setText(tr("regconfig.arbitrary.address"))
+        self._arb_type_label.setText(tr("regconfig.arbitrary.type"))
+        self._arb_read_btn.setText(tr("regconfig.arbitrary.read"))
+        self._arb_write_label.setText(tr("regconfig.arbitrary.value"))
+        self._arb_write_edit.setPlaceholderText(tr("regconfig.arbitrary.value_hint"))
+        self._arb_write_btn.setText(tr("regconfig.arbitrary.write"))
 
         # 详情面板按钮
         self._read_btn.setText(tr("regconfig.read"))

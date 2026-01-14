@@ -1031,6 +1031,48 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "保存到 EEPROM 失败",
         Language.ENGLISH: "Failed to save to EEPROM",
     },
+
+    # 任意寄存器读写
+    "regconfig.arbitrary.title": {
+        Language.CHINESE: "任意寄存器读写",
+        Language.ENGLISH: "Arbitrary Register Access",
+    },
+    "regconfig.arbitrary.address": {
+        Language.CHINESE: "地址:",
+        Language.ENGLISH: "Address:",
+    },
+    "regconfig.arbitrary.type": {
+        Language.CHINESE: "类型:",
+        Language.ENGLISH: "Type:",
+    },
+    "regconfig.arbitrary.read": {
+        Language.CHINESE: "读取",
+        Language.ENGLISH: "Read",
+    },
+    "regconfig.arbitrary.value": {
+        Language.CHINESE: "写入值:",
+        Language.ENGLISH: "Value:",
+    },
+    "regconfig.arbitrary.value_hint": {
+        Language.CHINESE: "十进制或0x开头十六进制",
+        Language.ENGLISH: "Decimal or 0x hex",
+    },
+    "regconfig.arbitrary.write": {
+        Language.CHINESE: "写入",
+        Language.ENGLISH: "Write",
+    },
+    "regconfig.arbitrary.enter_addr": {
+        Language.CHINESE: "请输入寄存器地址",
+        Language.ENGLISH: "Please enter register address",
+    },
+    "regconfig.arbitrary.invalid_addr": {
+        Language.CHINESE: "无效的地址格式",
+        Language.ENGLISH: "Invalid address format",
+    },
+    "regconfig.arbitrary.confirm_write": {
+        Language.CHINESE: "确认写入寄存器 {address} = {value}？",
+        Language.ENGLISH: "Confirm write register {address} = {value}?",
+    },
 }
 
 
