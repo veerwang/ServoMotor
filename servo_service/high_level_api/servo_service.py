@@ -347,6 +347,32 @@ class ServoService:
                 if verbose:
                     logger.info(f"  DI{di_num}: {func_name} (逻辑={logic})")
 
+        # 6. 配置抱闸 (如果有)
+        if config.has_brake:
+            if config.brake_auto_control:
+                # 设置为驱动器自动控制模式
+                motor.set_brake_auto_control(
+                    do_number=config.brake_do_number,
+                    logic=config.brake_do_logic
+                )
+                if verbose:
+                    logger.info(
+                        f"  抱闸: DO{config.brake_do_number} 自动控制 "
+                        f"(逻辑={'高电平释放' if config.brake_do_logic else '低电平释放'})"
+                    )
+            else:
+                # 设置为通信手动控制模式
+                motor.set_do_config(
+                    do_number=config.brake_do_number,
+                    function=1,  # 通用输出
+                    logic=config.brake_do_logic
+                )
+                if verbose:
+                    logger.info(
+                        f"  抱闸: DO{config.brake_do_number} 手动控制 "
+                        f"(逻辑={'高电平释放' if config.brake_do_logic else '低电平释放'})"
+                    )
+
         if verbose:
             logger.info(f"{axis.value} 轴电机参数初始化完成")
 
@@ -581,6 +607,85 @@ class ServoService:
         logger.info(f"故障复位轴 {axis.value}")
         motor = self.get_motor(axis)
         motor.fault_reset()
+
+    # ==================== 抱闸控制 ====================
+
+    def release_brake(self, axis: Optional[AxisName] = None) -> None:
+        """
+        释放抱闸
+
+        Args:
+            axis: 轴名称
+
+        Note:
+            仅对配置了抱闸的轴有效 (has_brake=True)
+        """
+        if axis is None:
+            axis = self._current_axis
+
+        config = self.get_axis_config(axis)
+        if not config.has_brake:
+            logger.warning(f"轴 {axis.value} 没有配置抱闸")
+            return
+
+        motor = self.get_motor(axis)
+        motor.release_brake(
+            do_number=config.brake_do_number,
+            logic_high_release=(config.brake_do_logic == 1)
+        )
+        logger.info(f"轴 {axis.value} 抱闸已释放")
+
+    def engage_brake(self, axis: Optional[AxisName] = None) -> None:
+        """
+        锁定抱闸
+
+        Args:
+            axis: 轴名称
+
+        Note:
+            仅对配置了抱闸的轴有效 (has_brake=True)
+        """
+        if axis is None:
+            axis = self._current_axis
+
+        config = self.get_axis_config(axis)
+        if not config.has_brake:
+            logger.warning(f"轴 {axis.value} 没有配置抱闸")
+            return
+
+        motor = self.get_motor(axis)
+        motor.engage_brake(
+            do_number=config.brake_do_number,
+            logic_high_release=(config.brake_do_logic == 1)
+        )
+        logger.info(f"轴 {axis.value} 抱闸已锁定")
+
+    def is_brake_released(self, axis: Optional[AxisName] = None) -> bool:
+        """
+        检查抱闸是否释放
+
+        Args:
+            axis: 轴名称
+
+        Returns:
+            True=释放, False=锁定
+        """
+        if axis is None:
+            axis = self._current_axis
+
+        config = self.get_axis_config(axis)
+        if not config.has_brake:
+            return True  # 没有抱闸视为已释放
+
+        motor = self.get_motor(axis)
+        do_state = motor.read_do_physical_state()
+        do_bit = (do_state >> (config.brake_do_number - 1)) & 1
+
+        # 根据逻辑判断
+        if config.brake_do_logic == 1:
+            return do_bit == 1  # 高电平释放
+        else:
+            return do_bit == 0  # 低电平释放
 
     # ==================== 运动控制 ====================
 

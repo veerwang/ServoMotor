@@ -132,6 +132,19 @@ class AxisConfig:
     blocking_time: int = 500
     """堵转检测时间 (ms)"""
 
+    # 抱闸配置 (仅当 has_brake=True 时有效)
+    brake_do_number: int = 1
+    """抱闸使用的 DO 端口号 (默认 DO1)"""
+
+    brake_do_logic: int = 1
+    """抱闸 DO 逻辑 (0=低电平释放, 1=高电平释放)"""
+
+    brake_release_delay_ms: int = 500
+    """抱闸释放延迟时间 (ms)"""
+
+    brake_auto_control: bool = True
+    """是否启用抱闸自动控制 (True=跟随电机使能状态)"""
+
     @property
     def stroke(self) -> float:
         """有效行程 (mm)"""
@@ -237,7 +250,11 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         slave_id=2,
         model="CFG5",
         motor_power=100,
-        has_brake=False,
+        has_brake=True,
+        brake_do_number=1,
+        brake_do_logic=1,  # 高电平释放
+        brake_release_delay_ms=500,
+        brake_auto_control=True,
         ball_screw_lead=10.0,
         max_velocity=500.0,
         stroke_min=0,
@@ -271,6 +288,10 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         model="CFG4",
         motor_power=100,
         has_brake=True,
+        brake_do_number=1,
+        brake_do_logic=1,  # 高电平释放
+        brake_release_delay_ms=500,
+        brake_auto_control=True,
         ball_screw_lead=10.0,
         max_velocity=500.0,
         stroke_min=0.0,

@@ -379,6 +379,45 @@ class Registers:
         object_subindex=0x05,
     )
 
+    # ==================== DO 配置寄存器 ====================
+
+    # DO1 功能 (2004h:01h)
+    DO1_FUNCTION = RegisterDef(
+        address=0x00F8,
+        name="DO1Function",
+        description="DO1 功能编号 (0=输入, 1=输出, 5=抱闸)",
+        object_index=0x2004,
+        object_subindex=0x01,
+    )
+
+    # DO1 逻辑 (2004h:02h)
+    DO1_LOGIC = RegisterDef(
+        address=0x00F9,
+        name="DO1Logic",
+        description="DO1 逻辑 (0=低电平有效, 1=高电平有效)",
+        object_index=0x2004,
+        object_subindex=0x02,
+    )
+
+    # DO 物理状态监控 (200Bh:06h)
+    DO_PHYSICAL_STATE = RegisterDef(
+        address=0x01E3,
+        name="DOPhysicalState",
+        description="DO 物理状态 (位0=DO1)",
+        access=RegisterAccess.READ_ONLY,
+        object_index=0x200B,
+        object_subindex=0x06,
+    )
+
+    # 通信 DO 控制 (2031h:02h)
+    DO_CONTROL = RegisterDef(
+        address=0x0374,
+        name="DOControl",
+        description="通信 DO 输出控制 (位0=DO1)",
+        object_index=0x2031,
+        object_subindex=0x02,
+    )
+
     # ==================== 数字输入输出 ====================
 
     # 数字输入 (60FDh)

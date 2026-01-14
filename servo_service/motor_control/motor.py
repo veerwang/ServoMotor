@@ -937,5 +937,129 @@ class Motor:
             self._slave_id, Registers.DI_PHYSICAL_STATE.address
         )
 
+    # ==================== DO 控制 ====================
+
+    def set_do_config(
+        self,
+        do_number: int,
+        function: int,
+        logic: int = 1,
+    ) -> None:
+        """
+        配置数字输出 (DO) 功能
+
+        Args:
+            do_number: DO 编号 (目前仅支持 1)
+            function: 功能编号 (1=通用输出, 5=抱闸)
+            logic: 逻辑 (0=低电平有效, 1=高电平有效)
+
+        Note:
+            常用功能编号:
+            - 0: 配置为输入
+            - 1: 通用输出 (由通信控制)
+            - 2: 电机运行/停止
+            - 3: 目标到达
+            - 4: 报警输出
+            - 5: 抱闸输出 (由驱动器自动控制)
+        """
+        if do_number != 1:
+            raise ValueError(f"无效的 DO 编号: {do_number}, 目前仅支持 DO1")
+
+        self._client.write_register(
+            self._slave_id, Registers.DO1_FUNCTION.address, function
+        )
+        self._client.write_register(
+            self._slave_id, Registers.DO1_LOGIC.address, logic
+        )
+        logger.debug(f"配置 DO{do_number}: 功能={function}, 逻辑={logic}")
+
+    def set_do_output(self, do_number: int, state: bool) -> None:
+        """
+        设置 DO 输出状态
+
+        Args:
+            do_number: DO 编号 (目前仅支持 1)
+            state: True=高电平, False=低电平
+
+        Note:
+            DO 功能必须设置为 1 (通用输出) 才能通过此方法控制
+        """
+        if do_number != 1:
+            raise ValueError(f"无效的 DO 编号: {do_number}, 目前仅支持 DO1")
+
+        # 读取当前状态，只修改指定位
+        current = self._client.read_register(
+            self._slave_id, Registers.DO_CONTROL.address
+        )
+
+        if state:
+            new_value = current | (1 << (do_number - 1))
+        else:
+            new_value = current & ~(1 << (do_number - 1))
+
+        self._client.write_register(
+            self._slave_id, Registers.DO_CONTROL.address, new_value
+        )
+        logger.debug(f"设置 DO{do_number} = {state}")
+
+    def read_do_physical_state(self) -> int:
+        """
+        读取 DO 物理状态
+
+        Returns:
+            DO 状态 (位0=DO1)
+        """
+        return self._client.read_register(
+            self._slave_id, Registers.DO_PHYSICAL_STATE.address
+        )
+
+    def release_brake(self, do_number: int = 1, logic_high_release: bool = True) -> None:
+        """
+        释放抱闸
+
+        Args:
+            do_number: 控制抱闸的 DO 编号
+            logic_high_release: True=高电平释放, False=低电平释放
+        """
+        # 设置为通用输出模式
+        self.set_do_config(do_number, function=1, logic=1 if logic_high_release else 0)
+        # 输出释放信号
+        self.set_do_output(do_number, logic_high_release)
+        logger.info(f"抱闸已释放 (DO{do_number}={'高' if logic_high_release else '低'})")
+
+    def engage_brake(self, do_number: int = 1, logic_high_release: bool = True) -> None:
+        """
+        锁定抱闸
+
+        Args:
+            do_number: 控制抱闸的 DO 编号
+            logic_high_release: True=高电平释放(所以低电平锁定), False=低电平释放(所以高电平锁定)
+        """
+        # 输出锁定信号 (与释放信号相反)
+        self.set_do_output(do_number, not logic_high_release)
+        logger.info(f"抱闸已锁定 (DO{do_number}={'低' if logic_high_release else '高'})")
+
+    def set_brake_auto_control(self, do_number: int = 1, logic: int = 1) -> None:
+        """
+        设置抱闸为驱动器自动控制模式
+
+        Args:
+            do_number: 控制抱闸的 DO 编号
+            logic: 逻辑 (0=低电平释放, 1=高电平释放)
+
+        Note:
+            在自动控制模式下，驱动器会在使能时自动释放抱闸，禁用时自动锁定
+        """
+        if do_number != 1:
+            raise ValueError(f"无效的 DO 编号: {do_number}, 目前仅支持 DO1")
+
+        self._client.write_register(
+            self._slave_id, Registers.DO1_FUNCTION.address, 5  # 5=抱闸功能
+        )
+        self._client.write_register(
+            self._slave_id, Registers.DO1_LOGIC.address, logic
+        )
+        logger.info(f"抱闸设置为自动控制模式 (DO{do_number}, 逻辑={logic})")
+
     def __repr__(self) -> str:
         return f"Motor(slave_id={self._slave_id}, state={self.get_state().value})"
