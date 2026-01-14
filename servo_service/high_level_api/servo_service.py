@@ -136,8 +136,17 @@ class ServoService:
         """设置当前选中的轴"""
         if axis not in self._axis_configs:
             raise ValueError(f"轴 {axis.value} 未配置")
+
+        old_axis = self._current_axis
         self._current_axis = axis
         logger.info(f"切换到轴 {axis.value}")
+
+        # 如果已连接且切换了轴，自动初始化新轴参数
+        if self.is_connected and axis != old_axis:
+            try:
+                self.initialize_motor_parameters(axis=axis, verbose=True)
+            except Exception as e:
+                logger.warning(f"初始化轴 {axis.value} 参数失败: {e}")
 
     def get_available_ports(self) -> List[PortInfo]:
         """
@@ -191,6 +200,9 @@ class ServoService:
 
         # 验证与当前轴电机的通信
         self._verify_motor_communication()
+
+        # 自动初始化当前轴参数
+        self.initialize_motor_parameters(verbose=True)
 
         logger.info("伺服系统连接成功")
 
