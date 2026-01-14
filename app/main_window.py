@@ -759,6 +759,10 @@ class MainWindow(QMainWindow):
         self._statusbar.showMessage(f"{tr('common.switch_to')} {axis_name}")
         self._update_status()
 
+        # 更新调试面板的从站地址
+        config = self._service.get_axis_config(axis)
+        self._modbus_debug_panel.update_slave_id(config.slave_id)
+
     def _on_parameters_applied(
         self, velocity: float, acceleration: float, deceleration: float
     ) -> None:

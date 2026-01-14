@@ -183,6 +183,24 @@ class ModbusDebugPanel(QGroupBox):
         btn_layout.addStretch()
         layout.addLayout(btn_layout)
 
+        # 抱闸控制行
+        brake_layout = QHBoxLayout()
+        self._brake_label = QLabel(tr("modbus.brake_control"))
+        brake_layout.addWidget(self._brake_label)
+
+        self._brake_toggle_btn = QPushButton(tr("modbus.brake_toggle"))
+        self._brake_toggle_btn.setToolTip("DO1: 切换抱闸状态")
+        self._brake_toggle_btn.clicked.connect(self._toggle_brake)
+        self._brake_toggle_btn.setFixedWidth(80)
+        brake_layout.addWidget(self._brake_toggle_btn)
+
+        self._brake_status_label = QLabel("--")
+        self._brake_status_label.setMinimumWidth(80)
+        brake_layout.addWidget(self._brake_status_label)
+
+        brake_layout.addStretch()
+        layout.addLayout(brake_layout)
+
         return widget
 
     def _create_manual_send_section(self) -> QWidget:
@@ -321,6 +339,55 @@ class ModbusDebugPanel(QGroupBox):
         return widget
 
     # ==================== 事件处理 ====================
+
+    def _toggle_brake(self) -> None:
+        """切换抱闸状态"""
+        if not self._service.is_connected:
+            self._log_error(tr("modbus.not_connected"))
+            return
+
+        self.request_pause_timer.emit()
+
+        try:
+            slave_id = self._slave_spin.value()
+            client = self._service.get_modbus_client()
+
+            # 读取当前 DO1 状态
+            do_state = client.read_register(slave_id, 0x01E3)  # DO 物理状态
+            do1_high = bool(do_state & 0x01)
+
+            # 读取 DO1 配置
+            do1_func = client.read_register(slave_id, 0x00F8)
+            do1_logic = client.read_register(slave_id, 0x00F9)
+
+            self._log_info(f"DO1: 功能={do1_func}, 逻辑={do1_logic}, 状态={'高' if do1_high else '低'}")
+
+            # 如果是自动模式(功能=5)，切换到手动模式
+            if do1_func == 5:
+                client.write_register(slave_id, 0x00F8, 1)  # 功能=通用输出
+                client.write_register(slave_id, 0x00F9, 1)  # 逻辑=高有效
+                self._log_info("DO1 从自动模式切换到手动模式")
+
+            # 切换 DO1 输出
+            new_state = 0 if do1_high else 1
+            client.write_register(slave_id, 0x0374, new_state)
+
+            # 更新状态显示
+            if do1_logic == 1:  # 高电平释放
+                brake_status = "释放" if new_state else "锁定"
+            else:  # 低电平释放
+                brake_status = "锁定" if new_state else "释放"
+
+            self._brake_status_label.setText(f"抱闸: {brake_status}")
+            self._brake_status_label.setStyleSheet(
+                "color: #5cb85c;" if brake_status == "释放" else "color: #d9534f;"
+            )
+            self._log_info(f"抱闸已{brake_status} (DO1={'高' if new_state else '低'})")
+
+        except Exception as e:
+            self._log_error(f"切换抱闸失败: {e}")
+        finally:
+            self.request_resume_timer.emit()
 
     def _quick_reg_click(self, reg: dict) -> None:
         """快捷寄存器按钮点击"""
@@ -690,6 +757,10 @@ class ModbusDebugPanel(QGroupBox):
         for btn, name_key in self._quick_reg_btns:
             btn.setText(tr(name_key))
 
+        # 抱闸控制
+        self._brake_label.setText(tr("modbus.brake_control"))
+        self._brake_toggle_btn.setText(tr("modbus.brake_toggle"))
+
         # 手动发送区
         self._manual_title.setText(tr("modbus.manual_send"))
         self._fc_label.setText(tr("modbus.function_code"))
@@ -719,3 +790,13 @@ class ModbusDebugPanel(QGroupBox):
 
         # 更新数据标签
         self._update_preview()
+
+    def update_slave_id(self, slave_id: int) -> None:
+        """
+        更新从站地址
+
+        Args:
+            slave_id: 从站地址
+        """
+        self._slave_spin.setValue(slave_id)
+        self._brake_status_label.setText("--")  # 重置抱闸状态显示

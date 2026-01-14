@@ -741,6 +741,14 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "数据:",
         Language.ENGLISH: "Data:",
     },
+    "modbus.brake_control": {
+        Language.CHINESE: "抱闸:",
+        Language.ENGLISH: "Brake:",
+    },
+    "modbus.brake_toggle": {
+        Language.CHINESE: "切换抱闸",
+        Language.ENGLISH: "Toggle Brake",
+    },
 
     # 寄存器名称
     "reg.status_word": {
