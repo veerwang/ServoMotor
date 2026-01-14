@@ -4,7 +4,7 @@
 
 ## 功能特性
 
-- **多轴支持**: 支持 XYG321-A 三轴平台 (X/Y/Z)
+- **多轴支持**: 支持多轴平台 (Z1/Y/Z)
 - **Modbus RTU**: 完整的 Modbus RTU 协议实现
 - **CiA402 状态机**: 标准的伺服驱动器状态管理
 - **PyQt5 GUI**: 现代化的图形用户界面，支持视图切换
@@ -62,8 +62,8 @@ from servo_service import ServoService, AxisName
 service = ServoService(port="/dev/ttyUSB0")
 service.connect()
 
-# 选择 Z 轴 (默认)
-service.current_axis = AxisName.Z
+# 选择 Z1 轴 (默认)
+service.current_axis = AxisName.Z1
 
 # 使能电机
 service.enable()

@@ -9,7 +9,80 @@ This repository contains documentation and resources for developing servo motor 
 ### Hardware Documentation
 
 - **LMS-C12-24050**: NiMotion integrated low-voltage servo motor (motor + drive in one unit)
-- **XYG321-A**: 3-axis ball screw drive motion system (X/Y/Z axes)
+- **PMMP4010D-485-OHEB-D04**: NiMotion integrated servo motor with 17-bit absolute encoder (Z1 axis)
+- **XYG321-A**: 3-axis ball screw drive motion system (Y/Z axes)
+
+---
+
+## Current Axis Configuration (Updated 2026-01-14)
+
+| Axis | Slave ID | Model | Encoder | Lead | Stroke | Brake | Homing |
+|------|----------|-------|---------|------|--------|-------|--------|
+| **Z1** | **4** | PMMP4010D-485-OHEB-D04 | 131072 (17-bit) | 10mm | 0-61mm | Yes (DO1) | Method 17 |
+| Y | 2 | CFG5 | 10000 | 10mm | 0-102mm | No | Method 17 |
+| Z | 3 | CFG4 | 10000 | 10mm | 0-61mm | Yes (DO1) | Method 17 |
+
+**Note:** Address 1 is reserved for future X axis.
+
+---
+
+## Z1 Axis - Standalone Stage (Verified 2026-01-14)
+
+### Specifications
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Motor Model | PMMP4010D-485-OHEB-D04 | NiMotion integrated servo |
+| Slave Address | 4 | Modbus RTU address |
+| Motor Power | 100W | With holding brake |
+| Encoder Type | Single-turn Absolute | 17-bit resolution |
+| Encoder Resolution | 131072 pulses/rev | 2^17 |
+| Ball Screw Lead | 10mm | 1 rev = 10mm linear |
+| **Pulses per mm** | **13107.2** | 131072 / 10 |
+| Stroke | 0 - 61mm | Verified by measurement |
+| Max Speed | 500 mm/s | |
+| Positioning Accuracy | ±0.01mm | |
+
+### Brake Configuration
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| DO Port | DO1 | Digital output 1 |
+| Logic | High = Release | 1 = brake released |
+| Release Delay | 500ms | Wait after release before motion |
+| Control Mode | Automatic | Follows motor enable state |
+
+### DI Configuration (Limit Switches)
+
+| DI | Function | Logic | Description |
+|----|----------|-------|-------------|
+| DI2 | 15 (Negative Limit) | 0 (Active Low) | Lower limit switch |
+| DI3 | 14 (Positive Limit) | 0 (Active Low) | Upper limit switch |
+
+### Homing Configuration
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Homing Method | 17 | Negative limit switch |
+| Homing High Speed | 20 mm/s | Search speed |
+| Homing Low Speed | 4 mm/s | Final approach speed |
+| Homing Acceleration | 100 mm/s² | |
+| Homing Timeout | 60000 ms | 60 seconds |
+
+### Unit Conversion
+
+```python
+# Position
+pulses = mm * 13107.2
+mm = pulses / 13107.2
+
+# Velocity
+pulses_per_sec = mm_per_sec * 13107.2
+mm_per_sec = pulses_per_sec / 13107.2
+
+# Example: Move to 30mm
+target_pulses = 30 * 13107.2 = 393216 pulses
+```
 
 ---
 
