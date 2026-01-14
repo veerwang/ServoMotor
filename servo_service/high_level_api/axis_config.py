@@ -213,35 +213,24 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
     AxisName.X: AxisConfig(
         name=AxisName.X,
         slave_id=1,
-        model="CFG4",  # 与 Z 轴一致
-        motor_power=100,  # 与 Z 轴一致
-        has_brake=True,  # 与 Z 轴一致
-        ball_screw_lead=10.0,  # 与 Z 轴一致
-        max_velocity=500.0,  # 与 Z 轴一致
-        stroke_min=0.0,  # 与 Z 轴一致
-        stroke_max=61.0,  # 与 Z 轴一致
-        positioning_accuracy=0.01,  # 与 Z 轴一致
+        model="CFG8",
+        motor_power=200,
+        has_brake=False,
+        ball_screw_lead=20.0,
+        max_velocity=1000.0,
+        stroke_min=50.0,
+        stroke_max=1100.0,
+        positioning_accuracy=0.02,
         repeat_accuracy=0.005,
-        max_payload_horizontal=20.0,  # 与 Z 轴一致
-        max_payload_vertical=10.0,  # 与 Z 轴一致
+        max_payload_horizontal=75.0,
+        max_payload_vertical=30.0,
         encoder_resolution=10000,
-        default_velocity=100.0,  # 与 Z 轴一致
+        default_velocity=200.0,
         default_acceleration=500.0,
         default_deceleration=500.0,
-        homing_velocity_high=30.0,  # 与 Z 轴一致
-        homing_velocity_low=5.0,  # 与 Z 轴一致
+        homing_velocity_high=50.0,
+        homing_velocity_low=10.0,
         homing_acceleration=100.0,
-        homing_method=17,  # NEGATIVE_LIMIT_SWITCH: 负限位回零 (与 Z 轴一致)
-        homing_timeout=60000,  # 60秒回零超时 (与 Z 轴一致)
-        velocity_polarity=-1,  # 速度方向反转 (与 Z 轴一致)
-        # DI 配置 (与 Z 轴一致)
-        di2_function=15,  # DI2 = 负限位 (下限位)
-        di2_logic=0,      # 低电平有效
-        di3_function=14,  # DI3 = 正限位 (上限位)
-        di3_logic=0,      # 低电平有效
-        # 堵转回零参数 (与 Z 轴一致)
-        blocking_torque=300,  # 30%
-        blocking_time=500,    # 500ms
     ),
     AxisName.Y: AxisConfig(
         name=AxisName.Y,
