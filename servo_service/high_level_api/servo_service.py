@@ -189,7 +189,48 @@ class ServoService:
                 slave_id=config.slave_id,
             )
 
+        # 验证与当前轴电机的通信
+        self._verify_motor_communication()
+
         logger.info("伺服系统连接成功")
+
+    def _verify_motor_communication(self) -> None:
+        """
+        验证与电机的通信
+
+        尝试读取状态字来确认电机响应正常。
+
+        Raises:
+            RuntimeError: 如果通信失败
+        """
+        motor = self._motors.get(self._current_axis)
+        if motor is None:
+            raise RuntimeError(f"未找到轴 {self._current_axis.value} 的电机实例")
+
+        config = self._axis_configs[self._current_axis]
+
+        try:
+            # 尝试读取状态字 (6041h) 来验证通信
+            status_word = motor.read_status_word()
+            logger.info(
+                f"电机通信验证成功: 轴={self._current_axis.value}, "
+                f"从站地址={config.slave_id}, 状态字=0x{status_word:04X}"
+            )
+        except Exception as e:
+            # 关闭已打开的资源
+            self._motors.clear()
+            if self._modbus_client:
+                self._modbus_client.disconnect()
+                self._modbus_client = None
+            if self._serial_port:
+                self._serial_port.close()
+                self._serial_port = None
+
+            raise RuntimeError(
+                f"无法与电机通信: 轴={self._current_axis.value}, "
+                f"从站地址={config.slave_id}。请检查从站地址是否正确。\n"
+                f"原始错误: {e}"
+            )
 
     def disconnect(self) -> None:
         """断开连接"""
