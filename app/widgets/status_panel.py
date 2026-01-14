@@ -15,7 +15,9 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QProgressBar,
+    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -191,6 +193,16 @@ class StatusPanel(QGroupBox):
 
         layout.addLayout(indicator_layout)
 
+        # 故障清除按钮
+        fault_btn_layout = QHBoxLayout()
+        self._clear_fault_btn = QPushButton(tr("status_panel.clear_fault"))
+        self._clear_fault_btn.setProperty("class", "warning")
+        self._clear_fault_btn.setToolTip(tr("status_panel.clear_fault_tip"))
+        self._clear_fault_btn.clicked.connect(self._on_clear_fault)
+        fault_btn_layout.addWidget(self._clear_fault_btn)
+        fault_btn_layout.addStretch()
+        layout.addLayout(fault_btn_layout)
+
         # 行程进度条
         stroke_layout = QVBoxLayout()
         self._stroke_title = QLabel(tr("status_panel.stroke_pos"))
@@ -306,6 +318,35 @@ class StatusPanel(QGroupBox):
         self._state_label.style().unpolish(self._state_label)
         self._state_label.style().polish(self._state_label)
 
+    def _on_clear_fault(self) -> None:
+        """清除故障"""
+        if not self._service.is_connected:
+            QMessageBox.warning(self, tr("common.warning"), tr("status_panel.not_connected"))
+            return
+
+        try:
+            motor = self._service.get_motor()
+            if motor is None:
+                raise RuntimeError("No motor connected")
+
+            # 发送故障复位命令 (控制字 bit7 上升沿)
+            # 先写 0，再写 0x80
+            motor.write_control_word(0x0000)
+            motor.write_control_word(0x0080)
+
+            logger.info("已发送故障清除命令")
+
+            # 短暂延时后更新状态
+            from PyQt5.QtCore import QTimer
+            QTimer.singleShot(200, self.update_status)
+
+        except Exception as e:
+            QMessageBox.warning(
+                self, tr("common.error"),
+                f"{tr('status_panel.clear_fault_failed')}: {e}"
+            )
+            logger.error(f"清除故障失败: {e}")
+
     def refresh_texts(self) -> None:
         """刷新界面文本"""
         self.setTitle(tr("status_panel.title"))
@@ -323,6 +364,10 @@ class StatusPanel(QGroupBox):
         self._fault_indicator.set_label(tr("status_panel.fault"))
         self._homed_indicator.set_label(tr("status_panel.homed"))
         self._target_indicator.set_label(tr("status_panel.target"))
+
+        # 更新按钮
+        self._clear_fault_btn.setText(tr("status_panel.clear_fault"))
+        self._clear_fault_btn.setToolTip(tr("status_panel.clear_fault_tip"))
 
 
 class StatusIndicator(QWidget):

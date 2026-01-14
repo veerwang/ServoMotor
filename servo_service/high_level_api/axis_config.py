@@ -253,6 +253,17 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         homing_velocity_high=30.0,
         homing_velocity_low=5.0,
         homing_acceleration=100.0,
+        homing_method=17,  # NEGATIVE_LIMIT_SWITCH: 负限位回零
+        homing_timeout=60000,  # 60秒回零超时
+        velocity_polarity=-1,  # 速度方向反转
+        # DI 配置 (Z轴限位开关，2026-01-12 验证)
+        di2_function=15,  # DI2 = 负限位 (下限位)
+        di2_logic=0,  # 低电平有效
+        di3_function=14,  # DI3 = 正限位 (上限位)
+        di3_logic=0,  # 低电平有效
+        # 堵转回零参数
+        blocking_torque=300,  # 30%
+        blocking_time=500,  # 500ms
     ),
     AxisName.Z: AxisConfig(
         name=AxisName.Z,
@@ -280,12 +291,12 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         velocity_polarity=-1,  # 速度方向反转
         # DI 配置 (Z轴限位开关，2026-01-12 验证)
         di2_function=15,  # DI2 = 负限位 (下限位)
-        di2_logic=0,      # 低电平有效
+        di2_logic=0,  # 低电平有效
         di3_function=14,  # DI3 = 正限位 (上限位)
-        di3_logic=0,      # 低电平有效
+        di3_logic=0,  # 低电平有效
         # 堵转回零参数
         blocking_torque=300,  # 30%
-        blocking_time=500,    # 500ms
+        blocking_time=500,  # 500ms
     ),
 }
 

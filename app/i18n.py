@@ -383,6 +383,22 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "行程位置:",
         Language.ENGLISH: "Stroke Position:",
     },
+    "status_panel.clear_fault": {
+        Language.CHINESE: "清除故障",
+        Language.ENGLISH: "Clear Fault",
+    },
+    "status_panel.clear_fault_tip": {
+        Language.CHINESE: "发送故障复位命令 (控制字 bit7)",
+        Language.ENGLISH: "Send fault reset command (control word bit7)",
+    },
+    "status_panel.clear_fault_failed": {
+        Language.CHINESE: "清除故障失败",
+        Language.ENGLISH: "Failed to clear fault",
+    },
+    "status_panel.not_connected": {
+        Language.CHINESE: "请先连接电机",
+        Language.ENGLISH: "Please connect to motor first",
+    },
 
     # ==================== 运动面板 ====================
     "motion.title": {
