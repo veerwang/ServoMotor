@@ -16,7 +16,7 @@ from servo_service import ServoService, AxisName, HomingMethod
 # 测试配置
 PORT = "/dev/ttyUSB0"
 BAUDRATE = 115200
-AXIS = AxisName.Z
+AXIS = AxisName.Z3
 
 # 测试结果
 test_results = []

@@ -71,7 +71,7 @@ def run_test():
 
     try:
         service.connect(port="/dev/ttyUSB0", baudrate=115200)
-        service.current_axis = AxisName.Z
+        service.current_axis = AxisName.Z3
         time.sleep(0.3)
 
         # 使能电机

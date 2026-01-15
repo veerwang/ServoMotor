@@ -16,7 +16,7 @@ from servo_service import ServoService, AxisName
 # 测试配置
 PORT = "/dev/ttyUSB0"
 BAUDRATE = 115200
-AXIS = AxisName.Z
+AXIS = AxisName.Z3
 
 # 行程配置 (Z轴实际行程 0-61mm)
 START_POS = 5.0      # 起始位置 (mm)

@@ -19,8 +19,8 @@ class TestAxisName:
     def test_values(self) -> None:
         """测试枚举值"""
         assert AxisName.X.value == "X"
-        assert AxisName.Y.value == "Y"
-        assert AxisName.Z.value == "Z"
+        assert AxisName.Y2.value == "Y2"
+        assert AxisName.Z3.value == "Z3"
 
     def test_iteration(self) -> None:
         """测试迭代"""
@@ -142,9 +142,9 @@ class TestDefaultConfigs:
 
     def test_get_axis_config(self) -> None:
         """测试获取轴配置"""
-        config = get_axis_config(AxisName.Z)
+        config = get_axis_config(AxisName.Z3)
 
-        assert config.name == AxisName.Z
+        assert config.name == AxisName.Z3
         assert config.slave_id == 3
         assert config.has_brake is True
 
@@ -154,8 +154,8 @@ class TestDefaultConfigs:
 
         assert len(configs) == 3
         assert AxisName.X in configs
-        assert AxisName.Y in configs
-        assert AxisName.Z in configs
+        assert AxisName.Y2 in configs
+        assert AxisName.Z3 in configs
 
     def test_x_axis_config(self) -> None:
         """测试 X 轴配置"""
@@ -168,7 +168,7 @@ class TestDefaultConfigs:
 
     def test_y_axis_config(self) -> None:
         """测试 Y 轴配置"""
-        config = get_axis_config(AxisName.Y)
+        config = get_axis_config(AxisName.Y2)
 
         assert config.slave_id == 2
         assert config.model == "CFG5"
@@ -176,7 +176,7 @@ class TestDefaultConfigs:
 
     def test_z_axis_config(self) -> None:
         """测试 Z 轴配置"""
-        config = get_axis_config(AxisName.Z)
+        config = get_axis_config(AxisName.Z3)
 
         assert config.slave_id == 3
         assert config.model == "CFG4"

@@ -130,10 +130,10 @@ class GUITester:
 
         # 测试 Z 轴选择 (通过 set_current_axis 方法)
         try:
-            panel.set_current_axis(AxisName.Z)
+            panel.set_current_axis(AxisName.Z3)
             self.wait_ms(200)
             current_axis = self.service.current_axis
-            passed = current_axis == AxisName.Z
+            passed = current_axis == AxisName.Z3
             log_test("选择 Z 轴", passed, f"当前轴: {current_axis.value}")
         except Exception as e:
             log_test("选择 Z 轴", False, str(e))

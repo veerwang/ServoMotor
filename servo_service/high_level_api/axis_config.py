@@ -16,8 +16,8 @@ class AxisName(Enum):
     """轴名称枚举"""
 
     Z1 = "Z1"
-    Y = "Y"
-    Z = "Z"
+    Y2 = "Y2"
+    Z3 = "Z3"
 
 
 @dataclass
@@ -268,8 +268,8 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         blocking_torque=300,  # 30%
         blocking_time=500,  # 500ms
     ),
-    AxisName.Y: AxisConfig(
-        name=AxisName.Y,
+    AxisName.Y2: AxisConfig(
+        name=AxisName.Y2,
         slave_id=2,
         model="CFG5",
         motor_power=100,
@@ -302,8 +302,8 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         blocking_torque=300,  # 30%
         blocking_time=500,  # 500ms
     ),
-    AxisName.Z: AxisConfig(
-        name=AxisName.Z,
+    AxisName.Z3: AxisConfig(
+        name=AxisName.Z3,
         slave_id=3,
         model="CFG4",
         motor_power=100,

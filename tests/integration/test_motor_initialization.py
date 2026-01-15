@@ -264,7 +264,7 @@ def main():
     if args.all:
         # 测试所有轴
         results = {}
-        for axis in [AxisName.Z]:  # 目前只有 Z 轴配置了 DI
+        for axis in [AxisName.Z3]:  # 目前只有 Z 轴配置了 DI
             results[axis.value] = test_initialization(axis, args.verify_only)
             print("\n")
 

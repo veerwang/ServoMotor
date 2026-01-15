@@ -73,7 +73,7 @@ def example_unit_conversion():
     """单位转换示例"""
     print("\n=== 单位转换示例 ===\n")
 
-    config = get_axis_config(AxisName.Z)
+    config = get_axis_config(AxisName.Z3)
 
     # 位置转换
     position_mm = 25.0
@@ -107,7 +107,7 @@ def example_simulated_motion():
     service.connect()
 
     # 选择 Z 轴
-    service.current_axis = AxisName.Z
+    service.current_axis = AxisName.Z3
 
     # 使能电机
     service.enable()
@@ -173,8 +173,8 @@ def example_multi_axis():
 
     # 分别控制各轴
     service.move_to(100.0, axis=AxisName.X)
-    service.move_to(50.0, axis=AxisName.Y)
-    service.move_to(25.0, axis=AxisName.Z)
+    service.move_to(50.0, axis=AxisName.Y2)
+    service.move_to(25.0, axis=AxisName.Z3)
 
     # 获取所有轴状态
     all_status = service.get_all_axis_status()
