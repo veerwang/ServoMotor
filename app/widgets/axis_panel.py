@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -125,30 +126,58 @@ class AxisPanel(QGroupBox):
 
     def _on_axis_clicked(self, button: QPushButton) -> None:
         """轴选择按钮点击"""
-        axis_name = button.text()  # 获取完整轴名 (Z4/Y/Z)
+        axis_name = button.text()  # 获取完整轴名 (Z4/Y2/Z3)
         axis = AxisName(axis_name)
 
-        # 更新所有按钮样式
+        # 如果点击的是当前轴，无需处理
+        if axis == self._service.current_axis:
+            return
+
+        # 记录之前的轴，用于切换失败时恢复
+        previous_axis = self._service.current_axis
+
+        # 使用安全的轴切换方法
+        if self._service.is_connected:
+            success = self._service.switch_axis(axis)
+            if not success:
+                # 切换失败，恢复按钮状态
+                self._restore_button_state(previous_axis)
+                # 显示警告消息
+                config = get_axis_config(axis)
+                QMessageBox.warning(
+                    self,
+                    tr("axis.switch_failed_title"),
+                    tr("axis.switch_failed_message").format(
+                        axis=axis.value,
+                        slave_id=config.slave_id
+                    )
+                )
+                logger.warning(f"轴切换失败: {axis.value} 无响应")
+                return
+        else:
+            # 未连接时直接切换
+            self._service.current_axis = axis
+
+        # 切换成功，更新所有按钮样式
         for ax, btn in self._axis_buttons.items():
             if ax == axis:
                 btn.setStyleSheet(self._button_style_selected)
             else:
                 btn.setStyleSheet(self._button_style_normal)
 
-        self._service.current_axis = axis
         self._update_info(axis)
-
-        # 初始化新轴的电机参数 (包括抱闸配置)
-        if self._service.is_connected:
-            try:
-                self._service.initialize_motor_parameters(axis)
-                logger.info(f"Initialized motor parameters for axis {axis.value}")
-            except Exception as e:
-                logger.warning(f"Failed to initialize motor parameters for axis {axis.value}: {e}")
-
         self.axis_changed.emit(axis)
-
         logger.debug(f"选择轴: {axis.value}")
+
+    def _restore_button_state(self, axis: AxisName) -> None:
+        """恢复按钮状态到指定轴"""
+        for ax, btn in self._axis_buttons.items():
+            if ax == axis:
+                btn.setChecked(True)
+                btn.setStyleSheet(self._button_style_selected)
+            else:
+                btn.setChecked(False)
+                btn.setStyleSheet(self._button_style_normal)
 
     def _update_info(self, axis: AxisName) -> None:
         """更新轴信息显示"""

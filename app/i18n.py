@@ -321,6 +321,14 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "带抱闸",
         Language.ENGLISH: "With Brake",
     },
+    "axis.switch_failed_title": {
+        Language.CHINESE: "轴切换失败",
+        Language.ENGLISH: "Axis Switch Failed",
+    },
+    "axis.switch_failed_message": {
+        Language.CHINESE: "无法切换到 {axis} 轴：电机无响应\n从站地址: {slave_id}\n\n请检查:\n• 电机是否上电\n• 从站地址是否正确\n• RS-485 连接是否正常",
+        Language.ENGLISH: "Cannot switch to axis {axis}: Motor not responding\nSlave ID: {slave_id}\n\nPlease check:\n• Motor power supply\n• Slave address configuration\n• RS-485 connection",
+    },
 
     # ==================== 状态面板 ====================
     "status_panel.title": {

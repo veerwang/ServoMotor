@@ -148,6 +148,93 @@ class ServoService:
             except Exception as e:
                 logger.warning(f"初始化轴 {axis.value} 参数失败: {e}")
 
+    def verify_axis_connection(self, axis: Optional[AxisName] = None) -> bool:
+        """
+        验证指定轴的电机是否可通信
+
+        尝试读取状态字来确认电机响应正常。
+
+        Args:
+            axis: 轴名称 (None 则使用当前轴)
+
+        Returns:
+            True 如果电机响应正常，False 如果通信失败
+        """
+        if not self.is_connected:
+            return False
+
+        if axis is None:
+            axis = self._current_axis
+
+        if axis not in self._motors:
+            return False
+
+        motor = self._motors[axis]
+        config = self._axis_configs[axis]
+
+        try:
+            # 尝试读取状态字 (6041h) 来验证通信
+            status_word = motor.read_status_word()
+            logger.debug(
+                f"轴 {axis.value} 通信验证成功: "
+                f"从站地址={config.slave_id}, 状态字=0x{status_word:04X}"
+            )
+            return True
+        except Exception as e:
+            logger.warning(
+                f"轴 {axis.value} 通信失败: 从站地址={config.slave_id}, 错误={e}"
+            )
+            return False
+
+    def switch_axis(self, axis: AxisName) -> bool:
+        """
+        安全地切换到指定轴
+
+        在切换前先验证目标轴的电机是否可通信。如果通信失败，
+        保持当前轴不变并返回 False。
+
+        Args:
+            axis: 目标轴
+
+        Returns:
+            True 如果切换成功，False 如果目标轴不可用
+        """
+        if axis not in self._axis_configs:
+            logger.error(f"轴 {axis.value} 未配置")
+            return False
+
+        # 如果未连接，直接切换（允许离线选择轴）
+        if not self.is_connected:
+            self._current_axis = axis
+            logger.info(f"离线切换到轴 {axis.value}")
+            return True
+
+        # 如果已经是当前轴，无需切换
+        if axis == self._current_axis:
+            return True
+
+        # 验证目标轴电机是否可通信
+        if not self.verify_axis_connection(axis):
+            logger.error(
+                f"无法切换到轴 {axis.value}: 电机无响应 "
+                f"(从站地址={self._axis_configs[axis].slave_id})"
+            )
+            return False
+
+        # 通信正常，执行切换
+        old_axis = self._current_axis
+        self._current_axis = axis
+        logger.info(f"切换到轴 {axis.value}")
+
+        # 初始化新轴参数
+        try:
+            self.initialize_motor_parameters(axis=axis, verbose=True)
+        except Exception as e:
+            logger.warning(f"初始化轴 {axis.value} 参数失败: {e}")
+            # 初始化失败不回滚，因为通信已验证成功
+
+        return True
+
     def get_available_ports(self) -> List[PortInfo]:
         """
         获取可用串口列表
