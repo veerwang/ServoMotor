@@ -933,6 +933,28 @@ class Motor:
         )
         logger.debug(f"设置减速比: {numerator}/{denominator}")
 
+    def set_polarity(self, polarity: int) -> None:
+        """
+        设置极性 (607Eh)
+
+        用于反转位置和速度方向。
+
+        Args:
+            polarity: 极性值
+                - 0x00: 位置正向, 速度正向
+                - 0x40: 位置正向, 速度反向
+                - 0x80: 位置反向, 速度正向
+                - 0xC0: 位置反向, 速度反向
+
+        Note:
+            Bit7: 位置极性 (0=正向, 1=反向)
+            Bit6: 速度极性 (0=正向, 1=反向)
+        """
+        self._client.write_register(
+            self._slave_id, Registers.POLARITY.address, polarity
+        )
+        logger.debug(f"设置极性: 0x{polarity:02X}")
+
     def read_di_physical_state(self) -> int:
         """
         读取 DI 物理状态

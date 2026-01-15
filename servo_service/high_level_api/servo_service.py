@@ -333,7 +333,13 @@ class ServoService:
                 f"检测时间={config.blocking_time}ms"
             )
 
-        # 5. 配置 DI 功能
+        # 5. 设置极性 (607Eh)
+        if config.driver_polarity != 0x00:
+            motor.set_polarity(config.driver_polarity)
+            if verbose:
+                logger.info(f"  极性(607Eh): 0x{config.driver_polarity:02X}")
+
+        # 6. 配置 DI 功能
         di_configs = [
             (1, config.di1_function, config.di1_logic),
             (2, config.di2_function, config.di2_logic),
@@ -347,7 +353,7 @@ class ServoService:
                 if verbose:
                     logger.info(f"  DI{di_num}: {func_name} (逻辑={logic})")
 
-        # 6. 配置抱闸 (如果有)
+        # 7. 配置抱闸 (如果有)
         if config.has_brake:
             # 设置抱闸释放延迟
             motor.set_brake_release_delay(config.brake_release_delay_ms)

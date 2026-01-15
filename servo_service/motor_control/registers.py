@@ -521,6 +521,19 @@ class Registers:
         object_subindex=0x02,
     )
 
+    # 极性 (607Eh) - 16位
+    # 根据 NiMotion 手册: 607Eh → Modbus 0x03F3
+    # Bit7: 位置极性 (0=正向, 1=反向)
+    # Bit6: 速度极性 (0=正向, 1=反向)
+    POLARITY = RegisterDef(
+        address=0x03F3,
+        name="Polarity",
+        description="极性设置 (bit7=位置, bit6=速度)",
+        size=1,
+        object_index=0x607E,
+        object_subindex=0x00,
+    )
+
 
 class ControlWordBits:
     """控制字位定义"""

@@ -14,15 +14,17 @@ This repository contains documentation and resources for developing servo motor 
 
 ---
 
-## Current Axis Configuration (Updated 2026-01-14)
+## Current Axis Configuration (Updated 2026-01-15)
 
-| Axis | Slave ID | Model | Encoder | Lead | Stroke | Brake | Homing |
-|------|----------|-------|---------|------|--------|-------|--------|
-| **Z1** | **4** | PMMP4010D-485-OHEB-D04 | 131072 (17-bit) | 10mm | 0-61mm | Yes (DO1) | Method 17 |
-| Y | 2 | CFG5 | 10000 | 10mm | 0-102mm | No | Method 17 |
-| Z | 3 | CFG4 | 10000 | 10mm | 0-61mm | Yes (DO1) | Method 17 |
+| Axis | Slave ID | Model | Encoder | Lead | Stroke | Brake | Homing | Polarity |
+|------|----------|-------|---------|------|--------|-------|--------|----------|
+| **Z1** | **4** | PMMP4010D-485-OHEB-D04 | 131072 (17-bit) | 10mm | 0-61mm | Yes (DO1) | Method 17 | 0x00 |
+| Y | 2 | CFG5 | 10000 | 10mm | 0-102mm | No | Method 17 | **0xC0** |
+| Z | 3 | CFG4 | 10000 | 10mm | 0-61mm | Yes (DO1) | Method 17 | 0x00 |
 
 **Note:** Address 1 is reserved for future X axis.
+
+**Polarity (607Eh):** Y轴需要设置极性0xC0（位置+速度都反向）以修正回零方向。
 
 ---
 

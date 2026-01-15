@@ -104,7 +104,15 @@ class AxisConfig:
     """回零超时时间 (ms)，默认60秒"""
 
     velocity_polarity: int = 1
-    """速度极性 (1 或 -1，用于修正运动方向)"""
+    """速度极性 (1 或 -1，用于软件层面修正运动方向)"""
+
+    driver_polarity: int = 0x00
+    """驱动器极性 (607Eh)，用于硬件层面反转方向
+    - 0x00: 位置正向, 速度正向
+    - 0x40: 位置正向, 速度反向
+    - 0x80: 位置反向, 速度正向
+    - 0xC0: 位置反向, 速度反向
+    """
 
     # DI 配置 (数字输入)
     di1_function: Optional[int] = None
@@ -283,11 +291,12 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         homing_acceleration=100.0,
         homing_method=17,  # NEGATIVE_LIMIT_SWITCH: 负限位回零
         homing_timeout=60000,  # 60秒回零超时
-        velocity_polarity=-1,  # 速度方向反转
-        # DI 配置 (Z轴限位开关，2026-01-12 验证)
-        di2_function=15,  # DI2 = 负限位 (下限位)
+        velocity_polarity=-1,  # 速度方向反转 (软件层面)
+        driver_polarity=0xC0,  # 驱动器极性反转 (位置+速度都反向)
+        # DI 配置 (Y轴限位开关)
+        di2_function=15,  # DI2 = 负限位
         di2_logic=0,  # 低电平有效
-        di3_function=14,  # DI3 = 正限位 (上限位)
+        di3_function=14,  # DI3 = 正限位
         di3_logic=0,  # 低电平有效
         # 堵转回零参数
         blocking_torque=300,  # 30%
