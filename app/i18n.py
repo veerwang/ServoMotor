@@ -285,17 +285,17 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "轴选择",
         Language.ENGLISH: "Axis Selection",
     },
-    "axis.z1": {
-        Language.CHINESE: "Z1 轴",
-        Language.ENGLISH: "Z1 Axis",
+    "axis.z4": {
+        Language.CHINESE: "Z4 轴",
+        Language.ENGLISH: "Z4 Axis",
     },
-    "axis.y": {
-        Language.CHINESE: "Y 轴",
-        Language.ENGLISH: "Y Axis",
+    "axis.y2": {
+        Language.CHINESE: "Y2 轴",
+        Language.ENGLISH: "Y2 Axis",
     },
-    "axis.z": {
-        Language.CHINESE: "Z 轴",
-        Language.ENGLISH: "Z Axis",
+    "axis.z3": {
+        Language.CHINESE: "Z3 轴",
+        Language.ENGLISH: "Z3 Axis",
     },
     "axis.model": {
         Language.CHINESE: "型号",

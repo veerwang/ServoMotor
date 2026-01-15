@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class AxisName(Enum):
     """轴名称枚举"""
 
-    Z1 = "Z1"
+    Z4 = "Z4"
     Y2 = "Y2"
     Z3 = "Z3"
 
@@ -231,8 +231,8 @@ class AxisConfig:
 
 # 平台预定义配置
 DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
-    AxisName.Z1: AxisConfig(
-        name=AxisName.Z1,
+    AxisName.Z4: AxisConfig(
+        name=AxisName.Z4,
         slave_id=4,
         model="PMMP4010D-485-OHEB-D04",
         motor_power=100,
@@ -249,7 +249,7 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         repeat_accuracy=0.005,
         max_payload_horizontal=20.0,
         max_payload_vertical=10.0,
-        encoder_resolution=131072,  # 17-bit absolute encoder (实测 129969, 理论 131072)
+        encoder_resolution=131072,  # 17-bit absolute encoder
         default_velocity=100.0,
         default_acceleration=500.0,
         default_deceleration=500.0,

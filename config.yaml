@@ -26,10 +26,10 @@ communication:
 # 轴配置
 axes:
   # 默认控制轴
-  default_axis: "Z1"
+  default_axis: "Z4"
 
-  # Z1 轴配置 (驱动平台)
-  z1:
+  # Z4 轴配置 (驱动平台)
+  z4:
     slave_id: 4
     model: "PMMP4010D-485-OHEB-D04"
     motor_power: 100

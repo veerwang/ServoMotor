@@ -9,7 +9,7 @@ This repository contains documentation and resources for developing servo motor 
 ### Hardware Documentation
 
 - **LMS-C12-24050**: NiMotion integrated low-voltage servo motor (motor + drive in one unit)
-- **PMMP4010D-485-OHEB-D04**: NiMotion integrated servo motor with 17-bit absolute encoder (Z1 axis)
+- **PMMP4010D-485-OHEB-D04**: NiMotion integrated servo motor with 17-bit absolute encoder (Z4 axis)
 - **XYG321-A**: 3-axis ball screw drive motion system (Y/Z axes)
 
 ---
@@ -18,7 +18,7 @@ This repository contains documentation and resources for developing servo motor 
 
 | Axis | Slave ID | Model | Encoder | Lead | Stroke | Brake | Homing | Polarity |
 |------|----------|-------|---------|------|--------|-------|--------|----------|
-| **Z1** | **4** | PMMP4010D-485-OHEB-D04 | 131072 (17-bit) | 10mm | 0-61mm | Yes (DO1) | Method 17 | 0x00 |
+| **Z4** | **4** | PMMP4010D-485-OHEB-D04 | 131072 (17-bit) | 10mm | 0-61mm | Yes (DO1) | Method 17 | 0x00 |
 | Y2 | 2 | CFG5 | 10000 | 10mm | 0-102mm | No | Method 17 | **0xC0** |
 | Z3 | 3 | CFG4 | 10000 | 10mm | 0-61mm | Yes (DO1) | Method 17 | 0x00 |
 
@@ -28,7 +28,7 @@ This repository contains documentation and resources for developing servo motor 
 
 ---
 
-## Z1 Axis - Standalone Stage (Verified 2026-01-14)
+## Z4 Axis - Standalone Stage (Verified 2026-01-14)
 
 ### Specifications
 

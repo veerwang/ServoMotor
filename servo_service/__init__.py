@@ -15,7 +15,7 @@ NiMotion 伺服电机控制服务
     service.connect()
 
     # 选择轴
-    service.current_axis = AxisName.Z1
+    service.current_axis = AxisName.Z4
 
     # 使能电机
     service.enable()

@@ -1,7 +1,7 @@
 """
 轴选择面板组件
 
-提供 Z1/Y/Z 轴选择功能。
+提供 Z4/Y/Z 轴选择功能。
 """
 
 import logging
@@ -28,7 +28,7 @@ class AxisPanel(QGroupBox):
     """
     轴选择面板
 
-    用于选择当前控制的轴 (Z1/Y/Z)。
+    用于选择当前控制的轴 (Z4/Y/Z)。
     """
 
     # 信号
@@ -108,8 +108,8 @@ class AxisPanel(QGroupBox):
             axis_layout.addWidget(btn)
             self._axis_buttons[axis] = btn
 
-            # 默认选中 Z1 轴
-            if axis == AxisName.Z1:
+            # 默认选中 Z4 轴
+            if axis == AxisName.Z4:
                 btn.setChecked(True)
                 btn.setStyleSheet(self._button_style_selected)
 
@@ -117,7 +117,7 @@ class AxisPanel(QGroupBox):
 
         # 当前轴信息
         self._info_label = QLabel()
-        self._update_info(AxisName.Z1)
+        self._update_info(AxisName.Z4)
         layout.addWidget(self._info_label)
 
         # 连接信号
@@ -125,7 +125,7 @@ class AxisPanel(QGroupBox):
 
     def _on_axis_clicked(self, button: QPushButton) -> None:
         """轴选择按钮点击"""
-        axis_name = button.text()  # 获取完整轴名 (Z1/Y/Z)
+        axis_name = button.text()  # 获取完整轴名 (Z4/Y/Z)
         axis = AxisName(axis_name)
 
         # 更新所有按钮样式
@@ -183,7 +183,7 @@ class AxisPanel(QGroupBox):
 
         for axis, btn in self._axis_buttons.items():
             config = get_axis_config(axis)
-            # 按钮文字只显示轴名 (Z1/Y/Z)，不需要翻译
+            # 按钮文字只显示轴名 (Z4/Y/Z)，不需要翻译
             btn.setToolTip(
                 f"{tr('axis.model')}: {config.model}\n"
                 f"{tr('axis.power')}: {config.motor_power}W\n"
