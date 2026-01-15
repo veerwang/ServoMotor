@@ -2782,6 +2782,52 @@ python3 tests/integration/test_max_average_speed.py
 
 ---
 
+## 项目更新记录
+
+### 2026-01-15
+
+**轴命名变更: Z1 → Z4**
+- Z1 轴重命名为 Z4 轴 (保持 Slave ID = 4 不变)
+- 更新所有相关代码、配置和文档
+- 受影响文件:
+  - `servo_service/high_level_api/axis_config.py` - AxisName 枚举和配置
+  - `servo_service/high_level_api/servo_service.py` - 默认轴设置
+  - `servo_service/__init__.py` - 示例代码
+  - `config.yaml` - 轴配置
+  - `app/i18n.py` - 国际化字符串
+  - `app/widgets/axis_panel.py` - 注释
+  - `tests/integration/test_z4_connection.py` - 从 test_z1_connection.py 重命名
+  - `tests/integration/test_z4_motion.py` - 从 test_z1_motion.py 重命名
+  - `README.md`, `CLAUDE.md` - 文档
+
+### 2026-01-14
+
+**Y2 轴回零方向修正**
+- 添加 `driver_polarity` 配置项到 AxisConfig
+- Y2 轴设置驱动器极性 0xC0 (位置+速度都反向)
+- 修正 Y2 轴回零方向问题
+
+**轴命名规范化**
+- Y 轴重命名为 Y2 (Slave ID: 2)
+- Z 轴重命名为 Z3 (Slave ID: 3)
+- 更新所有相关代码和文档
+
+### 2026-01-12
+
+**Z 轴限位开关配置**
+- 验证 DI2 = 负限位, DI3 = 正限位 (与预期接线相反)
+- 更新 DI 配置以匹配实际硬件接线
+- 最大平均速度测试: 加速度 3000 mm/s² 时达到 ~110 mm/s
+
+### 2026-01-10
+
+**Z 轴回零功能验证**
+- 修正回零超时参数 (默认 0ms → 60000ms)
+- 验证堵转回零 (Method 38) 功能
+- 确认 32 位寄存器使用大端序
+
+---
+
 ## Version Information
 
 | Manual Version | Date | Revision History |
