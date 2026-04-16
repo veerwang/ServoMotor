@@ -18,6 +18,7 @@ class AxisName(Enum):
     Z4 = "Z4"
     Y2 = "Y2"
     Z3 = "Z3"
+    X = "X"
 
 
 @dataclass
@@ -301,6 +302,30 @@ DEFAULT_AXIS_CONFIGS: Dict[AxisName, AxisConfig] = {
         # 堵转回零参数
         blocking_torque=300,  # 30%
         blocking_time=500,  # 500ms
+    ),
+    AxisName.X: AxisConfig(
+        name=AxisName.X,
+        slave_id=1,
+        model="Unknown",
+        motor_power=0,
+        has_brake=False,
+        ball_screw_lead=10.0,
+        max_velocity=50.0,
+        stroke_min=0.0,
+        stroke_max=10.0,
+        positioning_accuracy=0.01,
+        repeat_accuracy=0.005,
+        max_payload_horizontal=0.0,
+        max_payload_vertical=0.0,
+        encoder_resolution=10000,
+        default_velocity=10.0,
+        default_acceleration=100.0,
+        default_deceleration=100.0,
+        homing_velocity_high=10.0,
+        homing_velocity_low=2.0,
+        homing_acceleration=50.0,
+        homing_method=None,
+        homing_timeout=60000,
     ),
     AxisName.Z3: AxisConfig(
         name=AxisName.Z3,

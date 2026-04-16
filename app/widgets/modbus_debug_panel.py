@@ -260,7 +260,8 @@ class ModbusDebugPanel(QGroupBox):
         preview_layout.addWidget(self._frame_preview_label)
         self._preview_label = QLabel("")
         self._preview_label.setStyleSheet(
-            "font-family: monospace; background-color: #f0f0f0; padding: 4px;"
+            "font-family: monospace; background-color: #e8e8e8; "
+            "color: #000; font-weight: bold; padding: 4px;"
         )
         preview_layout.addWidget(self._preview_label, 1)
         layout.addLayout(preview_layout)
