@@ -1105,6 +1105,116 @@ TRANSLATIONS: Dict[str, Dict[Language, str]] = {
         Language.CHINESE: "确认写入寄存器 {address} = {value}？",
         Language.ENGLISH: "Confirm write register {address} = {value}?",
     },
+
+    # ==================== 硬件自检 ====================
+    "menu.hardware_test": {
+        Language.CHINESE: "硬件自检(&H)",
+        Language.ENGLISH: "Hardware Test(&H)",
+    },
+    "status.view_hardware_test": {
+        Language.CHINESE: "硬件自检",
+        Language.ENGLISH: "Hardware Test",
+    },
+    "hwtest.title": {
+        Language.CHINESE: "硬件连接自检",
+        Language.ENGLISH: "Hardware Connection Test",
+    },
+    "hwtest.estop": {
+        Language.CHINESE: "急停 (STOP)",
+        Language.ENGLISH: "E-STOP",
+    },
+    "hwtest.comm.title": {
+        Language.CHINESE: "1. 通信连接检测",
+        Language.ENGLISH: "1. Communication Test",
+    },
+    "hwtest.comm.run": {
+        Language.CHINESE: "检测通信",
+        Language.ENGLISH: "Test Communication",
+    },
+    "hwtest.comm.col_axis": {
+        Language.CHINESE: "轴",
+        Language.ENGLISH: "Axis",
+    },
+    "hwtest.comm.col_slave": {
+        Language.CHINESE: "从站",
+        Language.ENGLISH: "Slave",
+    },
+    "hwtest.comm.col_result": {
+        Language.CHINESE: "结果",
+        Language.ENGLISH: "Result",
+    },
+    "hwtest.comm.col_detail": {
+        Language.CHINESE: "详情",
+        Language.ENGLISH: "Detail",
+    },
+    "hwtest.comm.online": {
+        Language.CHINESE: "在线",
+        Language.ENGLISH: "Online",
+    },
+    "hwtest.comm.offline": {
+        Language.CHINESE: "离线",
+        Language.ENGLISH: "Offline",
+    },
+    "hwtest.limit.title": {
+        Language.CHINESE: "2. 上下限位开关自动测试",
+        Language.ENGLISH: "2. Limit Switch Auto Test",
+    },
+    "hwtest.limit.axis": {
+        Language.CHINESE: "测试轴",
+        Language.ENGLISH: "Test Axis",
+    },
+    "hwtest.limit.speed": {
+        Language.CHINESE: "测试速度 (mm/s)",
+        Language.ENGLISH: "Test Speed (mm/s)",
+    },
+    "hwtest.limit.run": {
+        Language.CHINESE: "开始限位测试",
+        Language.ENGLISH: "Start Limit Test",
+    },
+    "hwtest.limit.upper": {
+        Language.CHINESE: "上限位 (正/DI3)",
+        Language.ENGLISH: "Upper Limit (Pos/DI3)",
+    },
+    "hwtest.limit.lower": {
+        Language.CHINESE: "下限位 (负/DI2)",
+        Language.ENGLISH: "Lower Limit (Neg/DI2)",
+    },
+    "hwtest.limit.warn": {
+        Language.CHINESE: "⚠ 自动运动测试：电机将低速移动至上下限位。请确认机械行程无障碍、急停可用。",
+        Language.ENGLISH: "⚠ Auto motion test: motor will move slowly to both limits. Ensure travel is clear and E-STOP is reachable.",
+    },
+    "hwtest.log.title": {
+        Language.CHINESE: "测试日志",
+        Language.ENGLISH: "Test Log",
+    },
+    "hwtest.result.pending": {
+        Language.CHINESE: "未测试",
+        Language.ENGLISH: "Not tested",
+    },
+    "hwtest.result.pass": {
+        Language.CHINESE: "通过",
+        Language.ENGLISH: "PASS",
+    },
+    "hwtest.result.fail": {
+        Language.CHINESE: "失败",
+        Language.ENGLISH: "FAIL",
+    },
+    "hwtest.result.warn": {
+        Language.CHINESE: "警告",
+        Language.ENGLISH: "WARN",
+    },
+    "hwtest.msg.not_connected": {
+        Language.CHINESE: "未连接，请先连接设备",
+        Language.ENGLISH: "Not connected. Please connect first.",
+    },
+    "hwtest.msg.confirm_limit": {
+        Language.CHINESE: "即将对 {axis} 轴执行限位自动运动测试，电机会低速运动到上下限位。确认继续？",
+        Language.ENGLISH: "About to run limit auto-motion test on axis {axis}. The motor will move slowly to both limits. Continue?",
+    },
+    "hwtest.msg.estop_done": {
+        Language.CHINESE: "已请求急停",
+        Language.ENGLISH: "E-STOP requested",
+    },
 }
 
 

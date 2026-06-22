@@ -34,6 +34,7 @@ from .widgets.motion_panel import MotionPanel
 from .widgets.parameter_panel import ParameterPanel
 from .widgets.modbus_debug_panel import ModbusDebugPanel
 from .widgets.register_config_panel import RegisterConfigPanel
+from .widgets.hardware_test_panel import HardwareTestPanel
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ logger = logging.getLogger(__name__)
 VIEW_MOTOR_CONTROL = 0
 VIEW_MODBUS_DEBUG = 1
 VIEW_REGISTER_CONFIG = 2
+VIEW_HARDWARE_TEST = 3
 
 
 class MainWindow(QMainWindow):
@@ -132,6 +134,10 @@ class MainWindow(QMainWindow):
         self._register_config_view = self._create_register_config_view()
         self._view_stack.addWidget(self._register_config_view)
 
+        # 视图 4: 硬件自检视图
+        self._hardware_test_view = self._create_hardware_test_view()
+        self._view_stack.addWidget(self._hardware_test_view)
+
         # 使用 Splitter 分隔左右面板
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(left_panel)
@@ -187,6 +193,19 @@ class MainWindow(QMainWindow):
 
         return view
 
+    def _create_hardware_test_view(self) -> QWidget:
+        """创建硬件自检视图"""
+        view = QWidget()
+        layout = QVBoxLayout(view)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(10)
+
+        # 硬件自检面板
+        self._hardware_test_panel = HardwareTestPanel(self._service)
+        layout.addWidget(self._hardware_test_panel)
+
+        return view
+
     def _init_menu(self) -> None:
         """初始化菜单栏"""
         menubar = self.menuBar()
@@ -233,6 +252,15 @@ class MainWindow(QMainWindow):
         )
         view_group.addAction(self._register_config_action)
         self._view_menu.addAction(self._register_config_action)
+
+        self._hardware_test_action = QAction(tr("menu.hardware_test"), self)
+        self._hardware_test_action.setCheckable(True)
+        self._hardware_test_action.setShortcut("Ctrl+4")
+        self._hardware_test_action.triggered.connect(
+            lambda: self._switch_view(VIEW_HARDWARE_TEST)
+        )
+        view_group.addAction(self._hardware_test_action)
+        self._view_menu.addAction(self._hardware_test_action)
 
         # 连接菜单
         self._connect_menu = menubar.addMenu(tr("menu.connect"))
@@ -335,6 +363,10 @@ class MainWindow(QMainWindow):
         # 寄存器配置面板信号
         self._register_config_panel.request_pause_timer.connect(self.pause_status_timer)
         self._register_config_panel.request_resume_timer.connect(self.resume_status_timer)
+
+        # 硬件自检面板信号 (测试期间暂停状态轮询，避免串口冲突)
+        self._hardware_test_panel.test_started.connect(self.pause_status_timer)
+        self._hardware_test_panel.test_finished.connect(self.resume_status_timer)
 
         # 注册语言变更回调
         register_language_callback(self._on_language_changed)
@@ -719,6 +751,7 @@ class MainWindow(QMainWindow):
             VIEW_MOTOR_CONTROL: tr("status.view_motor"),
             VIEW_MODBUS_DEBUG: tr("status.view_modbus"),
             VIEW_REGISTER_CONFIG: tr("status.view_register"),
+            VIEW_HARDWARE_TEST: tr("status.view_hardware_test"),
         }
         view_name = view_names.get(view_index, "")
         logger.info(f"{tr('common.switch_to')} {view_name}")
@@ -827,6 +860,7 @@ class MainWindow(QMainWindow):
         self._motor_control_action.setText(tr("menu.motor_control"))
         self._modbus_debug_action.setText(tr("menu.modbus_debug"))
         self._register_config_action.setText(tr("menu.register_config"))
+        self._hardware_test_action.setText(tr("menu.hardware_test"))
 
         self._connect_menu.setTitle(tr("menu.connect"))
         self._connect_action.setText(tr("menu.connect_action"))
@@ -857,6 +891,7 @@ class MainWindow(QMainWindow):
         self._parameter_panel.refresh_texts()
         self._modbus_debug_panel.refresh_texts()
         self._register_config_panel.refresh_texts()
+        self._hardware_test_panel.refresh_texts()
 
     def _update_statusbar_message(self) -> None:
         """更新状态栏消息"""
@@ -864,6 +899,7 @@ class MainWindow(QMainWindow):
             VIEW_MOTOR_CONTROL: tr("status.view_motor"),
             VIEW_MODBUS_DEBUG: tr("status.view_modbus"),
             VIEW_REGISTER_CONFIG: tr("status.view_register"),
+            VIEW_HARDWARE_TEST: tr("status.view_hardware_test"),
         }
         view_name = view_names.get(self._current_view, "")
         if self._service.is_connected:
@@ -897,6 +933,7 @@ class MainWindow(QMainWindow):
         self._parameter_panel.setEnabled(enabled)
         self._modbus_debug_panel.setEnabled(enabled)
         self._register_config_panel.setEnabled(enabled)
+        self._hardware_test_panel.setEnabled(enabled)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """窗口关闭事件"""

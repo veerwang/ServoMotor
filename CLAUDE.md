@@ -61,6 +61,11 @@ This repository contains documentation and resources for developing servo motor 
 | DI2 | 15 (Negative Limit) | 0 (Active Low) | Lower limit switch |
 | DI3 | 14 (Positive Limit) | 0 (Active Low) | Upper limit switch |
 
+**硬件限位停机行为 (Verified 2026-06-22)：** 撞限位时驱动器**默认会自动停机锁轴**（报警 0x8614 默认响应码 = 3：急停+锁轴），无需额外配置即生效，且**独立于软件限位 607Dh**。
+- ⚠️ **响应码 3 是静默的**：不进故障状态、状态字 fault 位不置位、**603Fh 错误码里不会出现 0x8614**。因此**不能用读错误码来判断驱动器是否因限位停机**，只能观察速度是否自行降到 0。
+- 实测确认（GUI「硬件自检」面板）：上限位 59.10mm、下限位 -0.04mm 触发，驱动器均自动停机锁轴。
+- 硬件限位（DI 14/15，报 0x8614）与软件限位（607Dh，报 0x8613，仅位置模式）是**两套独立机制**。详见 `app/widgets/hardware_test_panel.py`。
+
 ### Homing Configuration
 
 | Parameter | Value | Notes |
@@ -2783,6 +2788,17 @@ python3 tests/integration/test_max_average_speed.py
 ---
 
 ## 项目更新记录
+
+### 2026-06-22
+
+**新增 GUI「硬件自检」面板 + 硬件限位行为确认**
+- 主窗口新增「硬件自检」Tab（视图菜单 Ctrl+4），标准化检测硬件连接：
+  - **通信连接检测**（只读）：逐轴 ping 状态字判在线/离线
+  - **上下限位自动测试**（自动运动）：低速 jog 撞限位，验证开关触发、方向极性、驱动器是否自动停机
+  - 安全设计：后台线程 + 急停按钮、暂停状态轮询避免串口冲突、方向/行程/超时保护
+- **确认 Z4 硬件限位默认就会自动停机锁轴**（0x8614 响应码3），实测通过；纠正了"靠 0x8614 错误码判断停机"的错误判据（响应码3静默，不报故障码）。详见 Z4 章节"硬件限位停机行为"。
+- 新增文件：`app/widgets/hardware_test_panel.py`、`tools/read_limit_status.py`（命令行只读限位诊断）
+- 修改文件：`app/main_window.py`、`app/i18n.py`、`CLAUDE.md`
 
 ### 2026-01-15
 

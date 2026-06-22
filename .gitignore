@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# ctags / 索引文件
+tags
+TAGS
+
 # C extensions
 *.so
 
